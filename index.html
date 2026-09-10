@@ -3,7 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Ryan's Engineering Tools</title>
+
+<title>IE Survey Tools Beta</title>
 
 <style>
 :root{
@@ -16,6 +17,7 @@
     --border:rgba(50,62,72,.14);
     --shadow:0 14px 36px rgba(50,62,72,.12);
     --radius:14px;
+    --focus:0 0 0 4px rgba(0,148,94,.18);
 }
 
 *{
@@ -24,6 +26,8 @@
 
 body{
     margin:0;
+    color:var(--granite);
+
     font-family:
         "Futura PT",
         "Futura",
@@ -35,50 +39,87 @@ body{
         Arial,
         sans-serif;
 
-    color:var(--granite);
-
     background:
         radial-gradient(
             900px 600px at 20% 0%,
-            rgba(0,148,94,.10),
+            rgba(0,148,94,.10) 0%,
             rgba(0,148,94,0) 55%
         ),
         linear-gradient(
             180deg,
-            #ffffff,
-            var(--bg)
+            #ffffff 0%,
+            var(--bg) 55%,
+            #eef3f6 100%
         );
 }
 
 header{
-    padding:28px 20px;
+    padding:22px 18px 16px;
+
     border-bottom:4px solid rgba(0,148,94,.35);
 
     background:
         linear-gradient(
             135deg,
-            rgba(0,148,94,.14),
+            rgba(0,148,94,.14) 0%,
             rgba(0,148,94,0) 46%
+        ),
+        radial-gradient(
+            900px 420px at 22% -10%,
+            rgba(0,148,94,.18) 0%,
+            rgba(0,148,94,0) 60%
         ),
         #ffffff;
 }
 
-.header-wrap{
+.headerWrap{
     max-width:1200px;
     margin:auto;
+
     display:flex;
     justify-content:space-between;
     align-items:center;
 }
 
+.titleArea{
+    display:flex;
+    align-items:center;
+    gap:14px;
+}
+
+.logo{
+    width:52px;
+    height:52px;
+
+    border-radius:14px;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    background:
+        linear-gradient(
+            180deg,
+            rgba(0,148,94,.22),
+            rgba(0,148,94,.08)
+        );
+
+    border:1px solid rgba(0,148,94,.25);
+}
+
+.logo svg{
+    color:var(--green);
+}
+
 h1{
     margin:0;
-    font-size:32px;
+    font-size:28px;
 }
 
 .subtitle{
-    margin-top:6px;
+    margin-top:4px;
     color:var(--gray2);
+    font-size:14px;
 }
 
 .tagline{
@@ -92,46 +133,121 @@ main{
     padding:24px;
 }
 
-.section-title{
-    margin-bottom:18px;
-    font-size:13px;
-    letter-spacing:.4px;
+.hero{
+    background:white;
+    border:1px solid var(--border);
+    box-shadow:var(--shadow);
+    border-radius:var(--radius);
+    padding:24px;
+    margin-bottom:24px;
+}
+
+.hero h2{
+    margin-top:0;
+    margin-bottom:8px;
+}
+
+.hero p{
+    margin:0;
+    color:var(--gray2);
+    line-height:1.6;
+}
+
+.sectionTitle{
+    margin-bottom:14px;
+
+    font-size:12px;
+    letter-spacing:.5px;
     text-transform:uppercase;
     color:var(--gray2);
 }
 
-.tool-grid{
+.toolGrid{
     display:grid;
     grid-template-columns:
-        repeat(auto-fit,minmax(280px,1fr));
+        repeat(auto-fit,minmax(320px,1fr));
     gap:20px;
 }
 
-.tool-card{
+.toolLink{
+    display:block;
+    text-decoration:none;
+    color:inherit;
+}
+
+
+.toolLink *{
+    textdecoration:none;
+    color:inherit;
+}
+.toolCard{
     background:var(--card);
     border:1px solid var(--border);
     border-radius:var(--radius);
     box-shadow:var(--shadow);
+
     padding:22px;
+
     display:flex;
     flex-direction:column;
+
+    transition:.15s ease;
+    height:100%;
 }
 
-.tool-card h2{
-    margin-top:0;
-    margin-bottom:10px;
+.toolLink:hover .toolCard{
+    transform:translateY(-3px);
+    border-color:rgba(0,148,94,.35);
+}
+
+.toolLink:focus .toolCard{
+    box-shadow:
+        var(--shadow),
+        var(--focus);
+}
+
+.icon{
+    font-size:34px;
+    margin-bottom:12px;
+}
+
+.toolCard h3{
+    margin:0 0 10px 0;
     font-size:20px;
 }
 
-.tool-card p{
+.toolCard p{
     color:var(--gray2);
-    flex-grow:1;
     line-height:1.5;
+    flex-grow:1;
 }
 
-.tool-button{
+.badge{
     display:inline-block;
-    text-decoration:none;
+    margin-bottom:14px;
+
+    padding:5px 10px;
+    border-radius:999px;
+
+    font-size:11px;
+    font-weight:700;
+    letter-spacing:.3px;
+}
+
+.badgeLive{
+    background:rgba(0,148,94,.08);
+    color:var(--green);
+    border:1px solid rgba(0,148,94,.25);
+}
+
+.badgeFuture{
+    background:#f1f4f6;
+    color:#7c8795;
+    border:1px solid rgba(50,62,72,.12);
+}
+
+.toolButton{
+    display:block;
 
     text-align:center;
 
@@ -139,9 +255,8 @@ main{
 
     border-radius:12px;
 
-    font-weight:700;
-
     color:white;
+    font-weight:700;
 
     background:
         linear-gradient(
@@ -150,37 +265,47 @@ main{
             var(--green-dark)
         );
 
-    transition:.15s ease;
+    margin-top:8px;
 }
 
-.tool-button:hover{
-    transform:translateY(-1px);
-}
+.toolButtonDisabled{
+    display:block;
 
-.coming-soon{
-    opacity:.7;
+    text-align:center;
+
+    padding:12px;
+
+    border-radius:12px;
+
+    color:#6b7785;
+    font-weight:700;
+
+    background:#dfe5ea;
+
+    margin-top:8px;
 }
 
 footer{
     text-align:center;
-    color:var(--gray2);
+
     padding:30px;
+    color:var(--gray2);
+
     font-size:12px;
 }
 
 @media(max-width:700px){
 
-    .header-wrap{
-        display:block;
-    }
-
-    .tagline{
-        margin-top:10px;
+    .headerWrap{
+        flex-direction:column;
+        align-items:flex-start;
+        gap:12px;
     }
 
     h1{
-        font-size:26px;
+        font-size:24px;
     }
+
 }
 </style>
 </head>
@@ -188,14 +313,33 @@ footer{
 <body>
 
 <header>
-    <div class="header-wrap">
 
-        <div>
-            <h1>Engineering Tools</h1>
+    <div class="headerWrap">
 
-            <div class="subtitle">
-                Survey, GIS, LiDAR, UAS, and geospatial utilities
+        <div class="titleArea">
+
+            <div class="logo">
+
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+                    <path d="M4 17.5h16" stroke="currentColor" stroke-width="1.8"/>
+                    <path d="M6 17.5l3-5 2 3 3-5 4 7"
+                    stroke="currentColor"
+                    stroke-width="1.8"
+                    fill="none"/>
+                </svg>
+
             </div>
+
+            <div>
+
+                <h1>IE Survey Tools (Beta)</h1>
+
+                <div class="subtitle">
+                    Survey • UAS • LiDAR • GIS • CAD
+                </div>
+
+            </div>
+
         </div>
 
         <div class="tagline">
@@ -203,55 +347,106 @@ footer{
         </div>
 
     </div>
+
 </header>
 
 <main>
 
-    <div class="section-title">
+    <section class="hero">
+
+        <h2>Engineering Utility Dashboard</h2>
+
+        <p>
+            A collection of engineering and geospatial tools
+            designed to support surveying, UAS operations,
+            LiDAR processing, GIS workflows, CAD production,
+            and project delivery.
+        </p>
+
+    </section>
+
+    <div class="sectionTitle">
         Available Tools
     </div>
 
-    <div class="tool-grid">
+    <div class="toolGrid">
 
-        <div class="tool-card">
-            <h2>Ground Sample Distance Calculator</h2>
+        <!-- GSD Calculator -->
+	<a
+		href="./GSD/"
+		class="toolLink"
+	>
 
-            <p>
-                Calculate flight heights, image footprint,
-                overlap spacing, triggering intervals,
-                and expected GSD for photogrammetry missions.
-            </p>
+            <div class="toolCard">
 
-            gsd/
-                Open Tool
-            </a>
-        </div>
+                <div class="icon">📷</div>
 
-        <div class="tool-card">
-            <h2>Unit Converter</h2>
+                <div class="badge badgeLive">
+                    LIVE
+                </div>
+
+                <h3>Ground Sample Distance Calculator</h3>
+
+                <p>
+                    Calculate flight height, image footprint,
+                    overlap spacing, trigger intervals,
+                    field of view, and expected GSD for
+                    photogrammetry planning.
+                </p>
+
+                <div class="toolButton">
+                    Open Tool
+                </div>
+
+            </div>
+
+        </a>
+
+        <!-- Unit Converter -->
+
+        <div class="toolCard">
+
+            <div class="icon">📏</div>
+
+            <div class="badge badgeFuture">
+                COMING SOON
+            </div>
+
+            <h3>Unit Converter</h3>
 
             <p>
                 Convert between survey, engineering,
-                geospatial, and aviation units.
+                aviation, GIS, and mapping units.
             </p>
 
-            unit-converter/
-                Open Tool
-            </a>
+            <div class="toolButtonDisabled">
+                Coming Soon
+            </div>
+
         </div>
 
-        <div class="tool-card">
-            <h2>File Name Standardizer</h2>
+        <!-- File Name Standardizer -->
+
+        <div class="toolCard">
+
+            <div class="icon">📂</div>
+
+            <div class="badge badgeFuture">
+                COMING SOON
+            </div>
+
+            <h3>File Name Standardizer</h3>
 
             <p>
-                Quickly standardize project file naming
-                based on Interstate conventions and
-                project delivery requirements.
+                Standardize file names using
+                Interstate Engineering project
+                naming conventions.
             </p>
 
-            file-name-standardizer/
-                Open Tool
-            </a>
+            <div class="toolButtonDisabled">
+                Coming Soon
+            </div>
+
         </div>
 
     </div>
@@ -260,9 +455,9 @@ footer{
 
 <footer>
 
-    Ryan Scanlan Engineering Tools<br>
-    Internal utility suite for surveying, LiDAR, GIS, CAD,
-    photogrammetry, and UAS operations.
+    IE Survey Tools Beta<br>
+    Internal utility suite for Survey, UAS, LiDAR, GIS,
+    CAD, photogrammetry, and geospatial workflows.
 
 </footer>
 
