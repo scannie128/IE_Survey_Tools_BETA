@@ -1,15 +1,16 @@
-# IDE
+# Windows
+Thumbs.db
+Desktop.ini
+
+# Mac
+.DS_Store
+
+# VS Code
 .vscode/
 
 # Logs
 *.log
 
-# Secrets
+# Environment variables
 .env
 .env.*
-
-# Windows
-Thumbs.db
-
-# Mac
-.DS_Store
