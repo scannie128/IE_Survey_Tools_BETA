@@ -1,15 +1,270 @@
 <!doctype html>
-<html>
+<html lang="en">
 <head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Ryan's Engineering Tools</title>
+
+<style>
+:root{
+    --green:#00945e;
+    --green-dark:#00784c;
+    --gray2:#7c8795;
+    --granite:#323e48;
+    --bg:#f7f9fb;
+    --card:#ffffff;
+    --border:rgba(50,62,72,.14);
+    --shadow:0 14px 36px rgba(50,62,72,.12);
+    --radius:14px;
+}
+
+*{
+    box-sizing:border-box;
+}
+
+body{
+    margin:0;
+    font-family:
+        "Futura PT",
+        "Futura",
+        "Jost",
+        "Avenir Next",
+        "Segoe UI",
+        Roboto,
+        Helvetica,
+        Arial,
+        sans-serif;
+
+    color:var(--granite);
+
+    background:
+        radial-gradient(
+            900px 600px at 20% 0%,
+            rgba(0,148,94,.10),
+            rgba(0,148,94,0) 55%
+        ),
+        linear-gradient(
+            180deg,
+            #ffffff,
+            var(--bg)
+        );
+}
+
+header{
+    padding:28px 20px;
+    border-bottom:4px solid rgba(0,148,94,.35);
+
+    background:
+        linear-gradient(
+            135deg,
+            rgba(0,148,94,.14),
+            rgba(0,148,94,0) 46%
+        ),
+        #ffffff;
+}
+
+.header-wrap{
+    max-width:1200px;
+    margin:auto;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+}
+
+h1{
+    margin:0;
+    font-size:32px;
+}
+
+.subtitle{
+    margin-top:6px;
+    color:var(--gray2);
+}
+
+.tagline{
+    color:var(--gray2);
+    font-size:13px;
+}
+
+main{
+    max-width:1200px;
+    margin:auto;
+    padding:24px;
+}
+
+.section-title{
+    margin-bottom:18px;
+    font-size:13px;
+    letter-spacing:.4px;
+    text-transform:uppercase;
+    color:var(--gray2);
+}
+
+.tool-grid{
+    display:grid;
+    grid-template-columns:
+        repeat(auto-fit,minmax(280px,1fr));
+    gap:20px;
+}
+
+.tool-card{
+    background:var(--card);
+    border:1px solid var(--border);
+    border-radius:var(--radius);
+    box-shadow:var(--shadow);
+    padding:22px;
+    display:flex;
+    flex-direction:column;
+}
+
+.tool-card h2{
+    margin-top:0;
+    margin-bottom:10px;
+    font-size:20px;
+}
+
+.tool-card p{
+    color:var(--gray2);
+    flex-grow:1;
+    line-height:1.5;
+}
+
+.tool-button{
+    display:inline-block;
+    text-decoration:none;
+
+    text-align:center;
+
+    padding:12px;
+
+    border-radius:12px;
+
+    font-weight:700;
+
+    color:white;
+
+    background:
+        linear-gradient(
+            180deg,
+            var(--green),
+            var(--green-dark)
+        );
+
+    transition:.15s ease;
+}
+
+.tool-button:hover{
+    transform:translateY(-1px);
+}
+
+.coming-soon{
+    opacity:.7;
+}
+
+footer{
+    text-align:center;
+    color:var(--gray2);
+    padding:30px;
+    font-size:12px;
+}
+
+@media(max-width:700px){
+
+    .header-wrap{
+        display:block;
+    }
+
+    .tagline{
+        margin-top:10px;
+    }
+
+    h1{
+        font-size:26px;
+    }
+}
+</style>
 </head>
+
 <body>
 
-<h1>Ryan's Engineering Tools</h1>
+<header>
+    <div class="header-wrap">
 
-<ul>
-  <li>gsd/Ground Sample Distance Calculator</a></li>
-</ul>
+        <div>
+            <h1>Engineering Tools</h1>
+
+            <div class="subtitle">
+                Survey, GIS, LiDAR, UAS, and geospatial utilities
+            </div>
+        </div>
+
+        <div class="tagline">
+            Professionals You Need, People You Trust.
+        </div>
+
+    </div>
+</header>
+
+<main>
+
+    <div class="section-title">
+        Available Tools
+    </div>
+
+    <div class="tool-grid">
+
+        <div class="tool-card">
+            <h2>Ground Sample Distance Calculator</h2>
+
+            <p>
+                Calculate flight heights, image footprint,
+                overlap spacing, triggering intervals,
+                and expected GSD for photogrammetry missions.
+            </p>
+
+            gsd/
+                Open Tool
+            </a>
+        </div>
+
+        <div class="tool-card">
+            <h2>Unit Converter</h2>
+
+            <p>
+                Convert between survey, engineering,
+                geospatial, and aviation units.
+            </p>
+
+            unit-converter/
+                Open Tool
+            </a>
+        </div>
+
+        <div class="tool-card">
+            <h2>File Name Standardizer</h2>
+
+            <p>
+                Quickly standardize project file naming
+                based on Interstate conventions and
+                project delivery requirements.
+            </p>
+
+            file-name-standardizer/
+                Open Tool
+            </a>
+        </div>
+
+    </div>
+
+</main>
+
+<footer>
+
+    Ryan Scanlan Engineering Tools<br>
+    Internal utility suite for surveying, LiDAR, GIS, CAD,
+    photogrammetry, and UAS operations.
+
+</footer>
 
 </body>
 </html>
