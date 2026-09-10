@@ -1,0 +1,15 @@
+# IDE
+.vscode/
+
+# Logs
+*.log
+
+# Secrets
+.env
+.env.*
+
+# Windows
+Thumbs.db
+
+# Mac
+.DS_Store
