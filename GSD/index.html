@@ -1,0 +1,2517 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Ground Sample Distance Calculator</title>
+
+  <style>
+    :root{
+      --green:#00945e;
+      --green-dark:#00784c;
+      --gray2:#7c8795;
+      --granite:#323e48;
+      --bg:#f7f9fb;
+      --card:#ffffff;
+      --border:rgba(50,62,72,.14);
+      --shadow:0 14px 36px rgba(50,62,72,.12);
+      --text:#1b2530;
+      --muted:rgba(50,62,72,.78);
+      --danger:#b4232a;
+      --warning:#a15c00;
+      --warning-bg:#fff7e8;
+      --info:#1769aa;
+      --info-bg:#eef7ff;
+      --ok:#0f8a54;
+      --radius:14px;
+      --focus:0 0 0 4px rgba(0,148,94,.18);
+
+      font-family:
+        "Futura PT",
+        "Futura",
+        "Jost",
+        "Avenir Next",
+        "Segoe UI",
+        Roboto,
+        Helvetica,
+        Arial,
+        system-ui,
+        sans-serif;
+    }
+
+    *{
+      box-sizing:border-box;
+    }
+
+    html{
+      min-height:100%;
+    }
+
+    body{
+      min-height:100%;
+      margin:0;
+      color:var(--text);
+      background:
+        radial-gradient(
+          900px 600px at 20% 0%,
+          rgba(0,148,94,.10) 0%,
+          rgba(0,148,94,0) 55%
+        ),
+        linear-gradient(
+          180deg,
+          #ffffff 0%,
+          var(--bg) 55%,
+          #eef3f6 100%
+        );
+    }
+
+    header{
+      padding:22px 18px 14px;
+      border-bottom:4px solid rgba(0,148,94,.35);
+      background:
+        linear-gradient(
+          135deg,
+          rgba(0,148,94,.14) 0%,
+          rgba(0,148,94,0) 46%
+        ),
+        radial-gradient(
+          900px 420px at 22% -10%,
+          rgba(0,148,94,.18) 0%,
+          rgba(0,148,94,0) 60%
+        ),
+        #ffffff;
+    }
+
+    .brandbar{
+      max-width:1100px;
+      margin:0 auto;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+    }
+
+    .brandleft{
+      display:flex;
+      align-items:center;
+      gap:12px;
+    }
+
+    .appicon{
+      width:44px;
+      height:44px;
+      flex:0 0 44px;
+      border-radius:12px;
+      display:grid;
+      place-items:center;
+      background:
+        radial-gradient(
+          60% 60% at 35% 30%,
+          rgba(255,255,255,.85) 0%,
+          rgba(255,255,255,.25) 55%,
+          rgba(255,255,255,0) 100%
+        ),
+        linear-gradient(
+          180deg,
+          rgba(0,148,94,.22),
+          rgba(0,148,94,.08)
+        );
+      border:1px solid rgba(0,148,94,.25);
+      box-shadow:0 10px 18px rgba(50,62,72,.10);
+    }
+
+    .appicon svg{
+      display:block;
+    }
+
+    h1{
+      margin:0;
+      font-size:22px;
+      letter-spacing:.2px;
+      color:var(--granite);
+    }
+
+    .subtitle{
+      margin:4px 0 0;
+      font-size:13px;
+      color:var(--gray2);
+    }
+
+    .tagline{
+      font-size:12px;
+      color:var(--gray2);
+      text-align:right;
+      white-space:nowrap;
+    }
+
+    .wrap{
+      max-width:1100px;
+      margin:0 auto;
+      padding:18px 18px 34px;
+    }
+
+    .grid{
+      display:grid;
+      grid-template-columns:1fr;
+      gap:16px;
+    }
+
+    .card{
+      background:var(--card);
+      border:1px solid var(--border);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      padding:16px;
+    }
+
+    .card h2{
+      margin:0 0 10px;
+      font-size:14px;
+      letter-spacing:.35px;
+      text-transform:uppercase;
+      color:var(--granite);
+    }
+
+    .row{
+      display:grid;
+      grid-template-columns:1fr;
+      gap:10px;
+      margin:12px 0;
+    }
+
+    .field{
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+      min-width:0;
+    }
+
+    label{
+      font-size:12px;
+      color:var(--gray2);
+    }
+
+    input,
+    select{
+      appearance:none;
+      width:100%;
+      min-width:0;
+      background:#fff;
+      color:var(--text);
+      border:1px solid rgba(50,62,72,.22);
+      border-radius:12px;
+      padding:10px 12px;
+      font-size:14px;
+      outline:none;
+    }
+
+    input:focus,
+    select:focus{
+      border-color:rgba(0,148,94,.6);
+      box-shadow:var(--focus);
+    }
+
+    input:disabled,
+    select:disabled{
+      color:rgba(50,62,72,.55);
+      background:#f1f4f6;
+      cursor:not-allowed;
+    }
+
+    input[type="range"]{
+      padding:0;
+      border:0;
+      border-radius:0;
+      box-shadow:none;
+      background:transparent;
+      accent-color:var(--green);
+    }
+
+    select{
+      background-image:
+        linear-gradient(
+          45deg,
+          transparent 50%,
+          var(--gray2) 50%
+        ),
+        linear-gradient(
+          135deg,
+          var(--gray2) 50%,
+          transparent 50%
+        );
+      background-position:
+        calc(100% - 18px) 52%,
+        calc(100% - 12px) 52%;
+      background-size:6px 6px,6px 6px;
+      background-repeat:no-repeat;
+      padding-right:42px;
+    }
+
+    button{
+      white-space:nowrap;
+      cursor:pointer;
+      border-radius:12px;
+      border:1px solid rgba(50,62,72,.18);
+      background:
+        linear-gradient(
+          180deg,
+          rgba(0,148,94,.26),
+          rgba(0,148,94,.10)
+        );
+      color:var(--granite);
+      padding:10px 12px;
+      font-weight:800;
+      letter-spacing:.2px;
+    }
+
+    button:hover{
+      border-color:rgba(0,148,94,.42);
+      background:
+        linear-gradient(
+          180deg,
+          rgba(0,148,94,.34),
+          rgba(0,148,94,.14)
+        );
+    }
+
+    button:focus-visible{
+      outline:none;
+      box-shadow:var(--focus);
+    }
+
+    button.danger{
+      color:#7a1116;
+      background:
+        linear-gradient(
+          180deg,
+          rgba(180,35,42,.12),
+          rgba(180,35,42,.05)
+        );
+    }
+
+    .hint{
+      font-size:12px;
+      color:var(--muted);
+      line-height:1.45;
+    }
+
+    .error{
+      display:none;
+      color:var(--danger);
+      font-size:12px;
+      line-height:1.4;
+    }
+
+    .badge{
+      display:inline-flex;
+      align-items:center;
+      width:max-content;
+      max-width:100%;
+      padding:4px 8px;
+      border-radius:999px;
+      border:1px solid rgba(0,148,94,.32);
+      background:rgba(0,148,94,.06);
+      color:var(--green);
+      font-size:11px;
+    }
+
+    .badge.warning{
+      color:var(--warning);
+      border-color:rgba(161,92,0,.30);
+      background:rgba(161,92,0,.07);
+    }
+
+    .hidden{
+      display:none !important;
+    }
+
+    .divider{
+      border:0;
+      border-top:1px solid var(--border);
+      margin:14px 0;
+    }
+
+    .segmented{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:8px;
+    }
+
+    .segment{
+      position:relative;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      min-height:42px;
+      padding:9px 11px;
+      border:1px solid rgba(50,62,72,.18);
+      border-radius:12px;
+      background:#fff;
+      color:var(--granite);
+      font-size:13px;
+      font-weight:800;
+      text-align:center;
+      cursor:pointer;
+      user-select:none;
+    }
+
+    .segment input{
+      position:absolute;
+      width:1px;
+      height:1px;
+      opacity:0;
+      pointer-events:none;
+    }
+
+    .segment.selected{
+      color:#fff;
+      border-color:rgba(0,148,94,.55);
+      background:
+        linear-gradient(
+          180deg,
+          rgba(0,148,94,.96),
+          rgba(0,120,76,.92)
+        );
+      box-shadow:0 10px 20px rgba(0,148,94,.18);
+    }
+
+    .specbox{
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:8px;
+      padding:12px;
+      margin-top:8px;
+      border:1px solid rgba(50,62,72,.12);
+      border-radius:12px;
+      background:#f7f9fb;
+    }
+
+    .specitem{
+      min-width:0;
+    }
+
+    .specitem span{
+      display:block;
+      margin-bottom:2px;
+      color:var(--gray2);
+      font-size:10px;
+      letter-spacing:.3px;
+      text-transform:uppercase;
+    }
+
+    .specitem strong{
+      display:block;
+      color:var(--granite);
+      font-size:13px;
+      overflow-wrap:anywhere;
+    }
+
+    .overlapControl{
+      display:grid;
+      grid-template-columns:minmax(0,1fr) 88px;
+      align-items:center;
+      gap:10px;
+    }
+
+    .numberWithSuffix{
+      position:relative;
+    }
+
+    .numberWithSuffix input{
+      padding-right:29px;
+    }
+
+    .numberWithSuffix span{
+      position:absolute;
+      top:50%;
+      right:11px;
+      color:var(--gray2);
+      font-size:13px;
+      pointer-events:none;
+      transform:translateY(-50%);
+    }
+
+    .notice{
+      padding:12px;
+      border-radius:12px;
+      font-size:12px;
+      line-height:1.5;
+    }
+
+    .notice.info{
+      color:#0f4f80;
+      border:1px solid rgba(23,105,170,.20);
+      background:var(--info-bg);
+    }
+
+    .notice.warning{
+      color:#754300;
+      border:1px solid rgba(161,92,0,.20);
+      background:var(--warning-bg);
+    }
+
+    .resultsHero{
+      padding:16px;
+      border:2px dashed rgba(0,148,94,.55);
+      border-radius:14px;
+      background:
+        linear-gradient(
+          135deg,
+          rgba(0,148,94,.09),
+          rgba(0,148,94,.02)
+        );
+      text-align:center;
+    }
+
+    .resultsHero.invalid{
+      border-color:rgba(180,35,42,.50);
+      background:
+        linear-gradient(
+          135deg,
+          rgba(180,35,42,.08),
+          rgba(180,35,42,.02)
+        );
+    }
+
+    .resultLabel{
+      margin-bottom:6px;
+      color:var(--gray2);
+      font-size:11px;
+      letter-spacing:.55px;
+      text-transform:uppercase;
+    }
+
+    .resultMain{
+      color:var(--green-dark);
+      font-size:32px;
+      font-weight:900;
+      line-height:1.1;
+      overflow-wrap:anywhere;
+    }
+
+    .resultsHero.invalid .resultMain{
+      color:var(--danger);
+      font-size:21px;
+    }
+
+    .resultSub{
+      margin-top:6px;
+      color:var(--muted);
+      font-size:12px;
+      line-height:1.4;
+    }
+
+    .metricGrid{
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:10px;
+      margin-top:12px;
+    }
+
+    .metric{
+      min-width:0;
+      padding:12px;
+      border:1px solid rgba(50,62,72,.12);
+      border-radius:12px;
+      background:#fff;
+    }
+
+    .metric span{
+      display:block;
+      margin-bottom:4px;
+      color:var(--gray2);
+      font-size:10px;
+      letter-spacing:.35px;
+      text-transform:uppercase;
+    }
+
+    .metric strong{
+      display:block;
+      color:var(--granite);
+      font-size:15px;
+      overflow-wrap:anywhere;
+    }
+
+    .metric small{
+      display:block;
+      margin-top:3px;
+      color:var(--muted);
+      font-size:10px;
+      line-height:1.35;
+    }
+
+    .actions{
+      display:flex;
+      align-items:center;
+      flex-wrap:wrap;
+      gap:10px;
+      margin-top:12px;
+    }
+
+    .ok{
+      display:none;
+      color:var(--ok);
+      font-size:12px;
+    }
+
+    details{
+      padding:12px;
+      border:1px solid rgba(50,62,72,.14);
+      border-radius:12px;
+      background:#fff;
+    }
+
+    details summary{
+      cursor:pointer;
+      outline:none;
+      color:var(--granite);
+      font-weight:800;
+      user-select:none;
+    }
+
+    details summary::-webkit-details-marker{
+      display:none;
+    }
+
+    details summary::after{
+      content:"▾";
+      float:right;
+      color:var(--gray2);
+    }
+
+    details[open] summary::after{
+      content:"▴";
+    }
+
+    .formula{
+      margin-top:10px;
+      padding:10px;
+      border-radius:10px;
+      background:#f3f6f8;
+      color:#15202b;
+      font-family:
+        ui-monospace,
+        SFMono-Regular,
+        Menlo,
+        Monaco,
+        Consolas,
+        "Liberation Mono",
+        "Courier New",
+        monospace;
+      font-size:12px;
+      line-height:1.55;
+      white-space:pre-wrap;
+      overflow-wrap:anywhere;
+    }
+
+    .footerNote{
+      margin-top:14px;
+      color:var(--muted);
+      font-size:11px;
+      line-height:1.5;
+      text-align:center;
+    }
+
+    @media(min-width:720px){
+      .row{
+        grid-template-columns:1fr 1fr;
+      }
+
+      .specbox{
+        grid-template-columns:repeat(4,minmax(0,1fr));
+      }
+    }
+
+    @media(min-width:1000px){
+      .grid{
+        grid-template-columns:1.18fr .82fr;
+        align-items:start;
+      }
+
+      .resultsCard{
+        position:sticky;
+        top:16px;
+      }
+    }
+
+    @media(max-width:520px){
+      .appicon{
+        width:34px;
+        height:34px;
+        flex-basis:34px;
+      }
+
+      .tagline{
+        display:none;
+      }
+
+      .resultMain{
+        font-size:27px;
+      }
+
+      .overlapControl{
+        grid-template-columns:1fr;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <div class="brandbar">
+      <div class="brandleft">
+        <div
+          class="appicon"
+          aria-hidden="true"
+          title="Ground Sample Distance Calculator"
+        >
+          <svg
+            width="27"
+            height="27"
+            viewBox="0 0 24 24"
+            fill="none"
+          >
+            <path
+              d="M4 17.5h16"
+              stroke="rgba(50,62,72,.85)"
+              stroke-width="1.5"
+              stroke-linecap="round"
+            />
+            <path
+              d="M6 17.5l3.2-5.2 2.2 2.6 2.5-4.1 4.1 6.7"
+              stroke="rgba(0,148,94,.95)"
+              stroke-width="1.7"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+            <path
+              d="M8 5.5h8M10 3.5h4M12 3.5v6"
+              stroke="rgba(50,62,72,.85)"
+              stroke-width="1.5"
+              stroke-linecap="round"
+            />
+            <path
+              d="M9.4 8.2L12 10l2.6-1.8"
+              stroke="rgba(0,148,94,.95)"
+              stroke-width="1.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+        </div>
+
+        <div>
+          <h1>Ground Sample Distance Calculator</h1>
+          <p class="subtitle">
+            Estimate image GSD, flight height, coverage, overlap spacing,
+            and triggering intervals.
+          </p>
+        </div>
+      </div>
+
+      <div class="tagline">
+        Professionals You Need, People You Trust.
+      </div>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <div class="grid">
+      <section class="card">
+        <h2>Aircraft and camera</h2>
+
+        <div class="row">
+          <div class="field">
+            <label for="cameraPreset">Drone / camera configuration</label>
+
+            <select id="cameraPreset">
+              <option value="p1">
+                DJI M300 RTK + Zenmuse P1, 35 mm
+              </option>
+
+              <option value="voyager61">
+                YellowScan Voyager 20 + 61 MP Camera
+              </option>
+
+              <option value="m3e">
+                DJI Mavic 3 Enterprise, Wide
+              </option>
+
+              <option value="p4rtk">
+                DJI Phantom 4 RTK
+              </option>
+
+              <option value="skydioWide">
+                Skydio X10, Wide Mapping Camera
+              </option>
+
+              <option value="skydioTele">
+                Skydio X10, Telephoto / Zoom Camera
+              </option>
+
+              <option value="custom">
+                Other / Custom Camera
+              </option>
+            </select>
+
+            <div class="hint">
+              Camera values can be reviewed and edited below. Selecting a
+              preset restores that camera's default values.
+            </div>
+          </div>
+
+          <div class="field">
+            <label>Calculation direction</label>
+
+            <div class="segmented" role="radiogroup">
+              <label class="segment selected" id="modeAltitudeLabel">
+                <input
+                  id="modeAltitude"
+                  type="radio"
+                  name="calculationMode"
+                  value="fromAltitude"
+                  checked
+                />
+                Altitude to GSD
+              </label>
+
+              <label class="segment" id="modeGsdLabel">
+                <input
+                  id="modeGsd"
+                  type="radio"
+                  name="calculationMode"
+                  value="fromGsd"
+                />
+                Target GSD to Altitude
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <div class="specbox">
+          <div class="specitem">
+            <span>Sensor</span>
+            <strong id="specSensor">35.9 × 24.0 mm</strong>
+          </div>
+
+          <div class="specitem">
+            <span>Image</span>
+            <strong id="specImage">8192 × 5460 px</strong>
+          </div>
+
+          <div class="specitem">
+            <span>Focal length</span>
+            <strong id="specFocal">35.0 mm</strong>
+          </div>
+
+          <div class="specitem">
+            <span>Minimum trigger</span>
+            <strong id="specTrigger">0.7 sec</strong>
+          </div>
+        </div>
+
+        <div
+          id="presetWarning"
+          class="notice warning hidden"
+          style="margin-top:12px;"
+        ></div>
+
+        <details id="cameraDetails" style="margin-top:12px;">
+          <summary>Review or edit camera specifications</summary>
+
+          <div class="row">
+            <div class="field">
+              <label for="cameraName">Camera name</label>
+              <input
+                id="cameraName"
+                type="text"
+                value="DJI M300 RTK + Zenmuse P1, 35 mm"
+              />
+            </div>
+
+            <div class="field">
+              <label for="focalLength">
+                Actual focal length (mm)
+              </label>
+              <input
+                id="focalLength"
+                type="number"
+                min="0.0001"
+                step="0.0001"
+                value="35"
+              />
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="field">
+              <label for="sensorWidth">Sensor width (mm)</label>
+              <input
+                id="sensorWidth"
+                type="number"
+                min="0.0001"
+                step="0.0001"
+                value="35.9"
+              />
+            </div>
+
+            <div class="field">
+              <label for="sensorHeight">Sensor height (mm)</label>
+              <input
+                id="sensorHeight"
+                type="number"
+                min="0.0001"
+                step="0.0001"
+                value="24"
+              />
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="field">
+              <label for="imageWidth">Image width (pixels)</label>
+              <input
+                id="imageWidth"
+                type="number"
+                min="1"
+                step="1"
+                value="8192"
+              />
+            </div>
+
+            <div class="field">
+              <label for="imageHeight">Image height (pixels)</label>
+              <input
+                id="imageHeight"
+                type="number"
+                min="1"
+                step="1"
+                value="5460"
+              />
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="field">
+              <label for="minimumTrigger">
+                Minimum camera triggering interval (seconds)
+              </label>
+              <input
+                id="minimumTrigger"
+                type="number"
+                min="0"
+                step="0.01"
+                value="0.7"
+              />
+            </div>
+
+            <div class="field">
+              <label for="cameraOrientation">Image orientation</label>
+              <select id="cameraOrientation">
+                <option value="landscape">Landscape</option>
+                <option value="portrait">Portrait / Rotated 90°</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="hint">
+            Use the physical sensor dimensions and actual lens focal length.
+            Do not enter a 35 mm equivalent focal length. Image orientation
+            controls which footprint dimension is treated as cross-track.
+          </div>
+
+          <div class="actions">
+            <button id="restorePresetBtn" type="button">
+              Restore Selected Preset
+            </button>
+          </div>
+        </details>
+
+        <hr class="divider" />
+
+        <h2>Flight inputs</h2>
+
+        <div class="row">
+          <div class="field" id="altitudeField">
+            <label for="altitude">Flight height above ground</label>
+            <input
+              id="altitude"
+              type="number"
+              min="0.01"
+              step="1"
+              value="200"
+            />
+
+            <div class="hint">
+              Enter height above the photographed ground surface, not
+              elevation above sea level.
+            </div>
+          </div>
+
+          <div class="field hidden" id="targetGsdField">
+            <label for="targetGsd">Desired ground sample distance</label>
+            <input
+              id="targetGsd"
+              type="number"
+              min="0.0001"
+              step="0.01"
+              value="2.50"
+            />
+
+            <div class="hint">
+              The calculator will determine the corresponding nominal
+              flight height.
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="altitudeUnit">
+              Flight height and distance units
+            </label>
+
+            <select id="altitudeUnit">
+              <option value="ft">Feet</option>
+              <option value="m">Meters</option>
+            </select>
+
+            <div class="hint">
+              Controls altitude, footprint, line spacing, and photo spacing.
+            </div>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="field">
+            <label for="gsdUnit">GSD units</label>
+
+            <select id="gsdUnit">
+              <option value="cm">Centimeters per pixel</option>
+              <option value="in">Inches per pixel</option>
+              <option value="mm">Millimeters per pixel</option>
+              <option value="ft">Feet per pixel</option>
+            </select>
+
+            <div class="hint">
+              GSD units are independent from the flight height units.
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="flightSpeed">Flight speed</label>
+
+            <input
+              id="flightSpeed"
+              type="number"
+              min="0.01"
+              step="0.1"
+              value="22"
+            />
+
+            <select id="speedUnit">
+              <option value="mph">Miles per hour</option>
+              <option value="mps">Meters per second</option>
+              <option value="fps">Feet per second</option>
+              <option value="kph">Kilometers per hour</option>
+              <option value="knots">Knots</option>
+            </select>
+
+            <div class="hint">
+              Used to estimate the camera triggering interval.
+            </div>
+          </div>
+        </div>
+
+        <hr class="divider" />
+
+        <h2>Image overlap</h2>
+
+        <div class="row">
+          <div class="field">
+            <label for="frontOverlapInput">Front overlap</label>
+
+            <div class="overlapControl">
+              <input
+                id="frontOverlapSlider"
+                type="range"
+                min="0"
+                max="95"
+                step="1"
+                value="75"
+              />
+
+              <div class="numberWithSuffix">
+                <input
+                  id="frontOverlapInput"
+                  type="number"
+                  min="0"
+                  max="95"
+                  step="0.1"
+                  value="75"
+                />
+                <span>%</span>
+              </div>
+            </div>
+
+            <div class="hint">
+              Type an exact percentage or use the slider. Both controls
+              remain synchronized.
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="sideOverlapInput">Side overlap</label>
+
+            <div class="overlapControl">
+              <input
+                id="sideOverlapSlider"
+                type="range"
+                min="0"
+                max="95"
+                step="1"
+                value="75"
+              />
+
+              <div class="numberWithSuffix">
+                <input
+                  id="sideOverlapInput"
+                  type="number"
+                  min="0"
+                  max="95"
+                  step="0.1"
+                  value="75"
+                />
+                <span>%</span>
+              </div>
+            </div>
+
+            <div class="hint">
+              Type an exact percentage or use the slider. Both controls
+              remain synchronized.
+            </div>
+          </div>
+        </div>
+
+        <div id="inputError" class="error">
+          Enter positive numeric values for all required camera and
+          calculation inputs. Overlap must be between 0 and 95 percent.
+        </div>
+
+        <div class="notice info" style="margin-top:12px;">
+          <strong>LiDAR note:</strong>
+          Ground sample distance describes the ground represented by one
+          image pixel. It does not represent LiDAR point spacing, point
+          density, laser footprint, or final surface resolution.
+        </div>
+
+        <div class="actions">
+          <button id="resetBtn" type="button" class="danger">
+            Reset Calculator
+          </button>
+        </div>
+      </section>
+
+      <aside class="card resultsCard">
+        <h2>Calculated result</h2>
+
+        <div class="resultsHero" id="resultsHero">
+          <div class="resultLabel" id="resultLabel">
+            Ground sample distance
+          </div>
+
+          <div class="resultMain" id="resultMain">
+            2.51 cm/pixel
+          </div>
+
+          <div class="resultSub" id="resultSub">
+            At 200 ft AGL
+          </div>
+        </div>
+
+        <div class="metricGrid">
+          <div class="metric">
+            <span>Image footprint</span>
+            <strong id="footprintResult">673 × 450 ft</strong>
+            <small>Cross-track width × along-track length</small>
+          </div>
+
+          <div class="metric">
+            <span>Area per image</span>
+            <strong id="areaResult">6.95 acres</strong>
+            <small>Unadjusted nadir footprint area</small>
+          </div>
+
+          <div class="metric">
+            <span>Flight-line spacing</span>
+            <strong id="lineSpacingResult">168 ft</strong>
+            <small>Based on side overlap</small>
+          </div>
+
+          <div class="metric">
+            <span>Photo spacing</span>
+            <strong id="photoSpacingResult">112 ft</strong>
+            <small>Based on front overlap</small>
+          </div>
+
+          <div class="metric">
+            <span>Required trigger interval</span>
+            <strong id="triggerIntervalResult">3.47 sec</strong>
+            <small id="triggerIntervalNote">
+              Based on photo spacing and flight speed
+            </small>
+          </div>
+
+          <div class="metric">
+            <span>Camera trigger check</span>
+            <strong id="triggerCheckResult">Within limit</strong>
+            <small id="triggerCheckNote">
+              Required interval exceeds camera minimum
+            </small>
+          </div>
+
+          <div class="metric">
+            <span>Horizontal field of view</span>
+            <strong id="horizontalFovResult">54.3°</strong>
+            <small>Calculated from sensor width and focal length</small>
+          </div>
+
+          <div class="metric">
+            <span>Vertical field of view</span>
+            <strong id="verticalFovResult">37.8°</strong>
+            <small>Calculated from sensor height and focal length</small>
+          </div>
+        </div>
+
+        <div
+          id="triggerWarning"
+          class="notice warning hidden"
+          style="margin-top:12px;"
+        ></div>
+
+        <div class="actions">
+          <button id="copyBtn" type="button">
+            Copy Summary
+          </button>
+
+          <span id="copyOk" class="ok">Copied</span>
+        </div>
+
+        <hr class="divider" />
+
+        <details>
+          <summary>Calculation details</summary>
+
+          <div class="formula" id="formulaText">
+            GSD = (AGL × sensor width) ÷
+            (focal length × image width)
+          </div>
+
+          <div class="hint" style="margin-top:10px;">
+            Results are nominal planning values. Actual processed GSD and
+            usable accuracy can vary with terrain relief, camera calibration,
+            focus, image scaling, aircraft attitude, shutter settings,
+            motion blur, processing choices, and flight-height variation.
+          </div>
+        </details>
+
+        <div class="notice warning" style="margin-top:12px;">
+          <strong>Planning reminder:</strong>
+          This calculator does not determine whether a flight is legal,
+          safe, or adequate for a required mapping accuracy. Verify terrain
+          clearance, airspace, aircraft limits, ground control, overlap,
+          and project-specific accuracy requirements separately.
+        </div>
+      </aside>
+    </div>
+
+    <div class="footerNote">
+      Nominal photogrammetry planning calculator. Verify final mission
+      settings against current manufacturer documentation, UGCS camera
+      profiles, aircraft limitations, site conditions, and project
+      requirements.
+    </div>
+  </main>
+
+  <script>
+    (function(){
+      "use strict";
+
+      const FT_TO_M = 0.3048;
+      const M_TO_FT = 1 / FT_TO_M;
+      const IN_TO_M = 0.0254;
+      const SQ_M_TO_ACRES = 0.0002471053815;
+
+      const presets = {
+        p1: {
+          name: "DJI M300 RTK + Zenmuse P1, 35 mm",
+          sensorWidth: 35.9,
+          sensorHeight: 24.0,
+          imageWidth: 8192,
+          imageHeight: 5460,
+          focalLength: 35.0,
+          minimumTrigger: 0.7,
+          warning: ""
+        },
+
+        voyager61: {
+          name: "YellowScan Voyager 20 + 61 MP Camera",
+          sensorWidth: 35.7,
+          sensorHeight: 23.8,
+          imageWidth: 9552,
+          imageHeight: 6368,
+          focalLength: 18.0,
+          minimumTrigger: 1.0,
+          warning:
+            "The 1.0-second triggering interval is a planning placeholder. " +
+            "Verify the active YellowScan CONFIG.ini, camera module settings, " +
+            "and current YellowScan documentation before relying on the " +
+            "trigger warning."
+        },
+
+        m3e: {
+          name: "DJI Mavic 3 Enterprise, Wide",
+          sensorWidth: 17.3,
+          sensorHeight: 13.0,
+          imageWidth: 5280,
+          imageHeight: 3956,
+          focalLength: 12.299,
+          minimumTrigger: 0.7,
+          warning:
+            "This preset uses the values shown in the supplied UGCS camera " +
+            "profile, including a true focal length of 0.48425223 inches, " +
+            "sensor dimensions of 0.68110273 by 0.5118113 inches, and a " +
+            "0.7-second minimum triggering interval."
+        },
+
+        p4rtk: {
+          name: "DJI Phantom 4 RTK",
+          sensorWidth: 13.2,
+          sensorHeight: 8.8,
+          imageWidth: 5472,
+          imageHeight: 3648,
+          focalLength: 8.8,
+          minimumTrigger: 0.7,
+          warning: ""
+        },
+
+        skydioWide: {
+          name: "Skydio X10, Wide Mapping Camera",
+          sensorWidth: 7.398,
+          sensorHeight: 5.555,
+          imageWidth: 4624,
+          imageHeight: 3472,
+          focalLength: 9.88,
+          minimumTrigger: 1.0,
+          warning:
+            "This Skydio X10 Wide preset uses the calibrated camera values " +
+            "recorded in an Interstate Engineering Pix4D quality report. " +
+            "Confirm the values against the current Skydio image metadata " +
+            "or UGCS profile if the sensor package or capture mode changes."
+        },
+
+        skydioTele: {
+          name: "Skydio X10, Telephoto / Zoom Camera",
+          sensorWidth: 6.4,
+          sensorHeight: 4.8,
+          imageWidth: 8000,
+          imageHeight: 6000,
+          focalLength: 35.0,
+          minimumTrigger: 1.0,
+          warning:
+            "Verification required: Skydio publishes a 1/2-inch, 48 MP " +
+            "telephoto camera with a 35 mm actual focal length and a " +
+            "13-degree diagonal field of view. The 6.4 by 4.8 mm sensor " +
+            "dimensions and 8000 by 6000 image dimensions are nominal " +
+            "planning values. Replace them with the exact UGCS or EXIF " +
+            "values from your aircraft before using this preset for " +
+            "production planning."
+        },
+
+        custom: {
+          name: "Custom Camera",
+          sensorWidth: 35.9,
+          sensorHeight: 24.0,
+          imageWidth: 8192,
+          imageHeight: 5460,
+          focalLength: 35.0,
+          minimumTrigger: 0.7,
+          warning:
+            "Custom camera selected. Verify all camera values before using " +
+            "the results for flight planning."
+        }
+      };
+
+      const el = function(id){
+        return document.getElementById(id);
+      };
+
+      const E = {
+        cameraPreset: el("cameraPreset"),
+        cameraName: el("cameraName"),
+        focalLength: el("focalLength"),
+        sensorWidth: el("sensorWidth"),
+        sensorHeight: el("sensorHeight"),
+        imageWidth: el("imageWidth"),
+        imageHeight: el("imageHeight"),
+        minimumTrigger: el("minimumTrigger"),
+        cameraOrientation: el("cameraOrientation"),
+        cameraDetails: el("cameraDetails"),
+        restorePresetBtn: el("restorePresetBtn"),
+
+        specSensor: el("specSensor"),
+        specImage: el("specImage"),
+        specFocal: el("specFocal"),
+        specTrigger: el("specTrigger"),
+        presetWarning: el("presetWarning"),
+
+        modeAltitude: el("modeAltitude"),
+        modeGsd: el("modeGsd"),
+        modeAltitudeLabel: el("modeAltitudeLabel"),
+        modeGsdLabel: el("modeGsdLabel"),
+
+        altitudeField: el("altitudeField"),
+        targetGsdField: el("targetGsdField"),
+        altitude: el("altitude"),
+        targetGsd: el("targetGsd"),
+        altitudeUnit: el("altitudeUnit"),
+        gsdUnit: el("gsdUnit"),
+
+        flightSpeed: el("flightSpeed"),
+        speedUnit: el("speedUnit"),
+
+        frontOverlapSlider: el("frontOverlapSlider"),
+        frontOverlapInput: el("frontOverlapInput"),
+        sideOverlapSlider: el("sideOverlapSlider"),
+        sideOverlapInput: el("sideOverlapInput"),
+
+        inputError: el("inputError"),
+        resultsHero: el("resultsHero"),
+        resultLabel: el("resultLabel"),
+        resultMain: el("resultMain"),
+        resultSub: el("resultSub"),
+
+        footprintResult: el("footprintResult"),
+        areaResult: el("areaResult"),
+        lineSpacingResult: el("lineSpacingResult"),
+        photoSpacingResult: el("photoSpacingResult"),
+        triggerIntervalResult: el("triggerIntervalResult"),
+        triggerIntervalNote: el("triggerIntervalNote"),
+        triggerCheckResult: el("triggerCheckResult"),
+        triggerCheckNote: el("triggerCheckNote"),
+        triggerWarning: el("triggerWarning"),
+        horizontalFovResult: el("horizontalFovResult"),
+        verticalFovResult: el("verticalFovResult"),
+        formulaText: el("formulaText"),
+
+        copyBtn: el("copyBtn"),
+        copyOk: el("copyOk"),
+        resetBtn: el("resetBtn")
+      };
+
+      let previousAltitudeUnit = E.altitudeUnit.value;
+      let previousGsdUnit = E.gsdUnit.value;
+      let lastSummary = "";
+
+      function positiveNumber(value){
+        const number = Number(value);
+
+        return (
+          Number.isFinite(number) &&
+          number > 0
+        ) ? number : null;
+      }
+
+      function nonNegativeNumber(value){
+        const number = Number(value);
+
+        return (
+          Number.isFinite(number) &&
+          number >= 0
+        ) ? number : null;
+      }
+
+      function clamp(value, minimum, maximum){
+        return Math.min(
+          Math.max(value, minimum),
+          maximum
+        );
+      }
+
+      function roundSmart(value, maximumDecimals){
+        if(!Number.isFinite(value)){
+          return "—";
+        }
+
+        return value.toLocaleString(undefined, {
+          minimumFractionDigits:0,
+          maximumFractionDigits:maximumDecimals
+        });
+      }
+
+      function fixedSmart(value, decimals){
+        if(!Number.isFinite(value)){
+          return "—";
+        }
+
+        return value.toLocaleString(undefined, {
+          minimumFractionDigits:decimals,
+          maximumFractionDigits:decimals
+        });
+      }
+
+      function getMode(){
+        return E.modeGsd.checked
+          ? "fromGsd"
+          : "fromAltitude";
+      }
+
+      function getCamera(){
+        return {
+          name:
+            E.cameraName.value.trim() ||
+            "Custom Camera",
+
+          sensorWidth:
+            positiveNumber(E.sensorWidth.value),
+
+          sensorHeight:
+            positiveNumber(E.sensorHeight.value),
+
+          imageWidth:
+            positiveNumber(E.imageWidth.value),
+
+          imageHeight:
+            positiveNumber(E.imageHeight.value),
+
+          focalLength:
+            positiveNumber(E.focalLength.value),
+
+          minimumTrigger:
+            nonNegativeNumber(E.minimumTrigger.value)
+        };
+      }
+
+      function cameraIsValid(camera){
+        return Boolean(
+          camera &&
+          camera.sensorWidth &&
+          camera.sensorHeight &&
+          camera.imageWidth &&
+          camera.imageHeight &&
+          camera.focalLength &&
+          camera.minimumTrigger !== null
+        );
+      }
+
+      function applyPreset(){
+        const preset =
+          presets[E.cameraPreset.value] ||
+          presets.custom;
+
+        E.cameraName.value = preset.name;
+        E.sensorWidth.value = preset.sensorWidth;
+        E.sensorHeight.value = preset.sensorHeight;
+        E.imageWidth.value = preset.imageWidth;
+        E.imageHeight.value = preset.imageHeight;
+        E.focalLength.value = preset.focalLength;
+        E.minimumTrigger.value = preset.minimumTrigger;
+        E.cameraOrientation.value = "landscape";
+
+        if(preset.warning){
+          E.presetWarning.textContent = preset.warning;
+          E.presetWarning.classList.remove("hidden");
+        } else {
+          E.presetWarning.textContent = "";
+          E.presetWarning.classList.add("hidden");
+        }
+
+        if(E.cameraPreset.value === "custom"){
+          E.cameraDetails.open = true;
+        }
+
+        render();
+      }
+
+      function updateSpecDisplay(camera){
+        if(!cameraIsValid(camera)){
+          E.specSensor.textContent = "—";
+          E.specImage.textContent = "—";
+          E.specFocal.textContent = "—";
+          E.specTrigger.textContent = "—";
+          return;
+        }
+
+        E.specSensor.textContent =
+          `${roundSmart(camera.sensorWidth, 4)} × ` +
+          `${roundSmart(camera.sensorHeight, 4)} mm`;
+
+        E.specImage.textContent =
+          `${roundSmart(camera.imageWidth, 0)} × ` +
+          `${roundSmart(camera.imageHeight, 0)} px`;
+
+        E.specFocal.textContent =
+          `${roundSmart(camera.focalLength, 5)} mm`;
+
+        E.specTrigger.textContent =
+          `${roundSmart(camera.minimumTrigger, 2)} sec`;
+      }
+
+      function updateModeStyles(){
+        const mode = getMode();
+
+        E.modeAltitudeLabel.classList.toggle(
+          "selected",
+          mode === "fromAltitude"
+        );
+
+        E.modeGsdLabel.classList.toggle(
+          "selected",
+          mode === "fromGsd"
+        );
+
+        E.altitudeField.classList.toggle(
+          "hidden",
+          mode !== "fromAltitude"
+        );
+
+        E.targetGsdField.classList.toggle(
+          "hidden",
+          mode !== "fromGsd"
+        );
+      }
+
+      function altitudeInputToMeters(value){
+        const numericValue = positiveNumber(value);
+
+        if(!numericValue){
+          return null;
+        }
+
+        return E.altitudeUnit.value === "ft"
+          ? numericValue * FT_TO_M
+          : numericValue;
+      }
+
+      function metersToAltitudeDisplay(valueMeters){
+        return E.altitudeUnit.value === "ft"
+          ? valueMeters * M_TO_FT
+          : valueMeters;
+      }
+
+      function gsdInputToMeters(value){
+        const numericValue = positiveNumber(value);
+
+        if(!numericValue){
+          return null;
+        }
+
+        switch(E.gsdUnit.value){
+          case "mm":
+            return numericValue / 1000;
+
+          case "cm":
+            return numericValue / 100;
+
+          case "in":
+            return numericValue * IN_TO_M;
+
+          case "ft":
+            return numericValue * FT_TO_M;
+
+          default:
+            return numericValue / 100;
+        }
+      }
+
+      function metersToGsdDisplay(valueMeters){
+        switch(E.gsdUnit.value){
+          case "mm":
+            return valueMeters * 1000;
+
+          case "cm":
+            return valueMeters * 100;
+
+          case "in":
+            return valueMeters / IN_TO_M;
+
+          case "ft":
+            return valueMeters * M_TO_FT;
+
+          default:
+            return valueMeters * 100;
+        }
+      }
+
+      function getGsdUnitLabel(){
+        switch(E.gsdUnit.value){
+          case "mm":
+            return "mm/pixel";
+
+          case "cm":
+            return "cm/pixel";
+
+          case "in":
+            return "in/pixel";
+
+          case "ft":
+            return "ft/pixel";
+
+          default:
+            return "cm/pixel";
+        }
+      }
+
+      function getDistanceUnitLabel(){
+        return E.altitudeUnit.value === "ft"
+          ? "ft"
+          : "m";
+      }
+
+      function speedInputToMetersPerSecond(value){
+        const numericValue = positiveNumber(value);
+
+        if(!numericValue){
+          return null;
+        }
+
+        switch(E.speedUnit.value){
+          case "mph":
+            return numericValue * 0.44704;
+
+          case "mps":
+            return numericValue;
+
+          case "fps":
+            return numericValue * FT_TO_M;
+
+          case "kph":
+            return numericValue / 3.6;
+
+          case "knots":
+            return numericValue * 0.514444;
+
+          default:
+            return numericValue;
+        }
+      }
+
+      function gsdMetersPerPixel(altitudeMeters, camera){
+        return (
+          altitudeMeters *
+          camera.sensorWidth
+        ) / (
+          camera.focalLength *
+          camera.imageWidth
+        );
+      }
+
+      function altitudeMetersForGsd(gsdMeters, camera){
+        return (
+          gsdMeters *
+          camera.focalLength *
+          camera.imageWidth
+        ) / camera.sensorWidth;
+      }
+
+      function fieldOfViewDegrees(sensorDimension, focalLength){
+        return (
+          2 *
+          Math.atan(
+            sensorDimension /
+            (2 * focalLength)
+          ) *
+          180 /
+          Math.PI
+        );
+      }
+
+      function syncOverlapFromSlider(slider, input){
+        input.value = slider.value;
+        render();
+      }
+
+      function syncOverlapFromInput(input, slider){
+        const numericValue = Number(input.value);
+
+        if(Number.isFinite(numericValue)){
+          slider.value = clamp(
+            numericValue,
+            0,
+            95
+          );
+        }
+
+        render();
+      }
+
+      function overlapsAreValid(){
+        const front = Number(E.frontOverlapInput.value);
+        const side = Number(E.sideOverlapInput.value);
+
+        return (
+          Number.isFinite(front) &&
+          Number.isFinite(side) &&
+          front >= 0 &&
+          front <= 95 &&
+          side >= 0 &&
+          side <= 95
+        );
+      }
+
+      function convertAltitudeUnit(){
+        if(E.altitudeUnit.value === previousAltitudeUnit){
+          return;
+        }
+
+        const altitudeValue =
+          positiveNumber(E.altitude.value);
+
+        if(altitudeValue){
+          if(
+            previousAltitudeUnit === "ft" &&
+            E.altitudeUnit.value === "m"
+          ){
+            E.altitude.value =
+              Number(
+                (altitudeValue * FT_TO_M).toFixed(4)
+              );
+          } else if(
+            previousAltitudeUnit === "m" &&
+            E.altitudeUnit.value === "ft"
+          ){
+            E.altitude.value =
+              Number(
+                (altitudeValue * M_TO_FT).toFixed(4)
+              );
+          }
+        }
+
+        previousAltitudeUnit =
+          E.altitudeUnit.value;
+      }
+
+      function convertGsdUnit(){
+        if(E.gsdUnit.value === previousGsdUnit){
+          return;
+        }
+
+        const currentValue =
+          positiveNumber(E.targetGsd.value);
+
+        if(currentValue){
+          let meters;
+
+          switch(previousGsdUnit){
+            case "mm":
+              meters = currentValue / 1000;
+              break;
+
+            case "cm":
+              meters = currentValue / 100;
+              break;
+
+            case "in":
+              meters = currentValue * IN_TO_M;
+              break;
+
+            case "ft":
+              meters = currentValue * FT_TO_M;
+              break;
+
+            default:
+              meters = currentValue / 100;
+          }
+
+          let convertedValue;
+
+          switch(E.gsdUnit.value){
+            case "mm":
+              convertedValue = meters * 1000;
+              break;
+
+            case "cm":
+              convertedValue = meters * 100;
+              break;
+
+            case "in":
+              convertedValue = meters / IN_TO_M;
+              break;
+
+            case "ft":
+              convertedValue = meters * M_TO_FT;
+              break;
+
+            default:
+              convertedValue = meters * 100;
+          }
+
+          E.targetGsd.value =
+            Number(convertedValue.toFixed(6));
+        }
+
+        previousGsdUnit =
+          E.gsdUnit.value;
+      }
+
+      function renderInvalid(){
+        E.inputError.style.display = "block";
+        E.resultsHero.classList.add("invalid");
+
+        E.resultMain.textContent =
+          "Check required inputs";
+
+        E.resultSub.textContent =
+          "Camera values, height or GSD, speed, and overlap must be valid.";
+
+        E.footprintResult.textContent = "—";
+        E.areaResult.textContent = "—";
+        E.lineSpacingResult.textContent = "—";
+        E.photoSpacingResult.textContent = "—";
+        E.triggerIntervalResult.textContent = "—";
+        E.triggerCheckResult.textContent = "—";
+        E.triggerCheckNote.textContent = "—";
+        E.horizontalFovResult.textContent = "—";
+        E.verticalFovResult.textContent = "—";
+        E.formulaText.textContent =
+          "Enter valid values to calculate results.";
+
+        E.triggerWarning.textContent = "";
+        E.triggerWarning.classList.add("hidden");
+
+        lastSummary = "";
+      }
+
+      function render(){
+        updateModeStyles();
+
+        const camera = getCamera();
+        updateSpecDisplay(camera);
+
+        const mode = getMode();
+
+        let altitudeMeters = null;
+        let gsdMeters = null;
+
+        if(cameraIsValid(camera)){
+          if(mode === "fromAltitude"){
+            altitudeMeters =
+              altitudeInputToMeters(E.altitude.value);
+
+            if(altitudeMeters){
+              gsdMeters =
+                gsdMetersPerPixel(
+                  altitudeMeters,
+                  camera
+                );
+            }
+          } else {
+            gsdMeters =
+              gsdInputToMeters(E.targetGsd.value);
+
+            if(gsdMeters){
+              altitudeMeters =
+                altitudeMetersForGsd(
+                  gsdMeters,
+                  camera
+                );
+            }
+          }
+        }
+
+        const speedMetersPerSecond =
+          speedInputToMetersPerSecond(
+            E.flightSpeed.value
+          );
+
+        if(
+          !cameraIsValid(camera) ||
+          !altitudeMeters ||
+          !gsdMeters ||
+          !speedMetersPerSecond ||
+          !overlapsAreValid() ||
+          !Number.isFinite(altitudeMeters) ||
+          !Number.isFinite(gsdMeters)
+        ){
+          renderInvalid();
+          return;
+        }
+
+        E.inputError.style.display = "none";
+        E.resultsHero.classList.remove("invalid");
+
+        const orientation =
+          E.cameraOrientation.value;
+
+        const crossTrackPixels =
+          orientation === "portrait"
+            ? camera.imageHeight
+            : camera.imageWidth;
+
+        const alongTrackPixels =
+          orientation === "portrait"
+            ? camera.imageWidth
+            : camera.imageHeight;
+
+        const crossTrackSensor =
+          orientation === "portrait"
+            ? camera.sensorHeight
+            : camera.sensorWidth;
+
+        const alongTrackSensor =
+          orientation === "portrait"
+            ? camera.sensorWidth
+            : camera.sensorHeight;
+
+        const crossTrackGsd =
+          (
+            altitudeMeters *
+            crossTrackSensor
+          ) / (
+            camera.focalLength *
+            crossTrackPixels
+          );
+
+        const alongTrackGsd =
+          (
+            altitudeMeters *
+            alongTrackSensor
+          ) / (
+            camera.focalLength *
+            alongTrackPixels
+          );
+
+        const footprintWidthMeters =
+          crossTrackGsd * crossTrackPixels;
+
+        const footprintHeightMeters =
+          alongTrackGsd * alongTrackPixels;
+
+        const areaSquareMeters =
+          footprintWidthMeters *
+          footprintHeightMeters;
+
+        const sideOverlap =
+          Number(E.sideOverlapInput.value) / 100;
+
+        const frontOverlap =
+          Number(E.frontOverlapInput.value) / 100;
+
+        const lineSpacingMeters =
+          footprintWidthMeters *
+          (1 - sideOverlap);
+
+        const photoSpacingMeters =
+          footprintHeightMeters *
+          (1 - frontOverlap);
+
+        const triggerIntervalSeconds =
+          photoSpacingMeters /
+          speedMetersPerSecond;
+
+        const horizontalFov =
+          fieldOfViewDegrees(
+            camera.sensorWidth,
+            camera.focalLength
+          );
+
+        const verticalFov =
+          fieldOfViewDegrees(
+            camera.sensorHeight,
+            camera.focalLength
+          );
+
+        const displayedGsd =
+          metersToGsdDisplay(gsdMeters);
+
+        const displayedAltitude =
+          metersToAltitudeDisplay(
+            altitudeMeters
+          );
+
+        const gsdUnitLabel =
+          getGsdUnitLabel();
+
+        const distanceUnitLabel =
+          getDistanceUnitLabel();
+
+        E.resultLabel.textContent =
+          mode === "fromAltitude"
+            ? "Ground sample distance"
+            : "Recommended nominal flight height";
+
+        if(mode === "fromAltitude"){
+          E.resultMain.textContent =
+            `${fixedSmart(displayedGsd, 2)} ${gsdUnitLabel}`;
+
+          E.resultSub.textContent =
+            `At ${roundSmart(displayedAltitude, 1)} ` +
+            `${distanceUnitLabel} AGL`;
+        } else {
+          E.resultMain.textContent =
+            `${roundSmart(displayedAltitude, 1)} ` +
+            `${distanceUnitLabel} AGL`;
+
+          E.resultSub.textContent =
+            `For ${fixedSmart(displayedGsd, 2)} ` +
+            `${gsdUnitLabel}`;
+        }
+
+        if(E.altitudeUnit.value === "ft"){
+          const footprintWidth =
+            footprintWidthMeters * M_TO_FT;
+
+          const footprintHeight =
+            footprintHeightMeters * M_TO_FT;
+
+          E.footprintResult.textContent =
+            `${roundSmart(footprintWidth, 0)} × ` +
+            `${roundSmart(footprintHeight, 0)} ft`;
+
+          E.areaResult.textContent =
+            `${roundSmart(
+              areaSquareMeters * SQ_M_TO_ACRES,
+              2
+            )} acres`;
+
+          E.lineSpacingResult.textContent =
+            `${roundSmart(
+              lineSpacingMeters * M_TO_FT,
+              1
+            )} ft`;
+
+          E.photoSpacingResult.textContent =
+            `${roundSmart(
+              photoSpacingMeters * M_TO_FT,
+              1
+            )} ft`;
+        } else {
+          E.footprintResult.textContent =
+            `${roundSmart(footprintWidthMeters, 1)} × ` +
+            `${roundSmart(footprintHeightMeters, 1)} m`;
+
+          E.areaResult.textContent =
+            `${roundSmart(
+              areaSquareMeters / 10000,
+              2
+            )} ha`;
+
+          E.lineSpacingResult.textContent =
+            `${roundSmart(
+              lineSpacingMeters,
+              1
+            )} m`;
+
+          E.photoSpacingResult.textContent =
+            `${roundSmart(
+              photoSpacingMeters,
+              1
+            )} m`;
+        }
+
+        E.triggerIntervalResult.textContent =
+          `${fixedSmart(triggerIntervalSeconds, 2)} sec`;
+
+        E.triggerIntervalNote.textContent =
+          `At ${roundSmart(
+            Number(E.flightSpeed.value),
+            2
+          )} ${E.speedUnit.value}`;
+
+        const triggerIsValid =
+          triggerIntervalSeconds >=
+          camera.minimumTrigger;
+
+        if(triggerIsValid){
+          E.triggerCheckResult.textContent =
+            "Within camera limit";
+
+          E.triggerCheckResult.style.color =
+            "var(--ok)";
+
+          E.triggerCheckNote.textContent =
+            `${fixedSmart(
+              triggerIntervalSeconds,
+              2
+            )} sec required versus ` +
+            `${fixedSmart(
+              camera.minimumTrigger,
+              2
+            )} sec camera minimum`;
+
+          E.triggerWarning.textContent = "";
+          E.triggerWarning.classList.add("hidden");
+        } else {
+          E.triggerCheckResult.textContent =
+            "Trigger interval too short";
+
+          E.triggerCheckResult.style.color =
+            "var(--danger)";
+
+          E.triggerCheckNote.textContent =
+            `${fixedSmart(
+              triggerIntervalSeconds,
+              2
+            )} sec required versus ` +
+            `${fixedSmart(
+              camera.minimumTrigger,
+              2
+            )} sec camera minimum`;
+
+          const maximumSpeedMetersPerSecond =
+            photoSpacingMeters /
+            camera.minimumTrigger;
+
+          const requiredSpacingMeters =
+            speedMetersPerSecond *
+            camera.minimumTrigger;
+
+          E.triggerWarning.textContent =
+            "The selected speed and front overlap require images faster " +
+            "than the entered camera minimum triggering interval. Reduce " +
+            "flight speed, reduce front overlap, or confirm that the camera " +
+            "supports the required interval. At the current spacing, the " +
+            "maximum speed is approximately " +
+            `${fixedSmart(
+              maximumSpeedMetersPerSecond,
+              2
+            )} m/s. The camera needs at least ` +
+            `${fixedSmart(
+              requiredSpacingMeters,
+              1
+            )} m between images at the selected speed.`;
+
+          E.triggerWarning.classList.remove("hidden");
+        }
+
+        E.horizontalFovResult.textContent =
+          `${fixedSmart(horizontalFov, 1)}°`;
+
+        E.verticalFovResult.textContent =
+          `${fixedSmart(verticalFov, 1)}°`;
+
+        E.formulaText.textContent =
+          mode === "fromAltitude"
+            ? (
+              "GSD = (AGL × sensor width) ÷ " +
+              "(focal length × image width)\n\n" +
+              `Camera: ${camera.name}\n` +
+              `AGL: ${fixedSmart(altitudeMeters, 3)} m\n` +
+              `Sensor: ${camera.sensorWidth} × ` +
+              `${camera.sensorHeight} mm\n` +
+              `Focal length: ${camera.focalLength} mm\n` +
+              `Image: ${camera.imageWidth} × ` +
+              `${camera.imageHeight} px\n` +
+              `Nominal GSD: ${fixedSmart(
+                gsdMeters * 100,
+                4
+              )} cm/pixel\n\n` +
+              "Photo spacing = along-track footprint × " +
+              "(1 - front overlap)\n" +
+              "Flight-line spacing = cross-track footprint × " +
+              "(1 - side overlap)\n" +
+              "Trigger interval = photo spacing ÷ flight speed"
+            )
+            : (
+              "AGL = (GSD × focal length × image width) ÷ " +
+              "sensor width\n\n" +
+              `Camera: ${camera.name}\n` +
+              `Target GSD: ${fixedSmart(
+                gsdMeters * 100,
+                4
+              )} cm/pixel\n` +
+              `Sensor: ${camera.sensorWidth} × ` +
+              `${camera.sensorHeight} mm\n` +
+              `Focal length: ${camera.focalLength} mm\n` +
+              `Image: ${camera.imageWidth} × ` +
+              `${camera.imageHeight} px\n` +
+              `Calculated AGL: ${fixedSmart(
+                altitudeMeters,
+                3
+              )} m\n\n` +
+              "Trigger interval = photo spacing ÷ flight speed"
+            );
+
+        lastSummary = [
+          "Ground Sample Distance Calculation",
+          `Camera: ${camera.name}`,
+          `Camera preset: ${E.cameraPreset.options[
+            E.cameraPreset.selectedIndex
+          ].text}`,
+          `Flight height: ${fixedSmart(
+            altitudeMeters,
+            2
+          )} m AGL (${fixedSmart(
+            altitudeMeters * M_TO_FT,
+            1
+          )} ft)`,
+          `Nominal GSD: ${fixedSmart(
+            gsdMeters * 100,
+            2
+          )} cm/pixel (${fixedSmart(
+            gsdMeters / IN_TO_M,
+            3
+          )} in/pixel)`,
+          `Image footprint: ${fixedSmart(
+            footprintWidthMeters,
+            1
+          )} × ${fixedSmart(
+            footprintHeightMeters,
+            1
+          )} m`,
+          `Front overlap: ${E.frontOverlapInput.value}%`,
+          `Side overlap: ${E.sideOverlapInput.value}%`,
+          `Maximum photo spacing: ${fixedSmart(
+            photoSpacingMeters,
+            1
+          )} m`,
+          `Maximum flight-line spacing: ${fixedSmart(
+            lineSpacingMeters,
+            1
+          )} m`,
+          `Flight speed: ${E.flightSpeed.value} ` +
+            `${E.speedUnit.value}`,
+          `Required trigger interval: ${fixedSmart(
+            triggerIntervalSeconds,
+            2
+          )} seconds`,
+          `Camera minimum trigger interval: ${fixedSmart(
+            camera.minimumTrigger,
+            2
+          )} seconds`,
+          `Trigger check: ${
+            triggerIsValid
+              ? "Within entered camera limit"
+              : "Required interval is shorter than entered camera limit"
+          }`,
+          "Note: Nominal planning values only. " +
+            "GSD is not LiDAR point spacing."
+        ].join("\n");
+      }
+
+      async function copySummary(){
+        if(!lastSummary){
+          return;
+        }
+
+        try{
+          await navigator.clipboard.writeText(
+            lastSummary
+          );
+
+          E.copyOk.style.display = "inline";
+
+          window.setTimeout(function(){
+            E.copyOk.style.display = "none";
+          }, 1400);
+        } catch(error){
+          const textArea =
+            document.createElement("textarea");
+
+          textArea.value = lastSummary;
+          textArea.style.position = "fixed";
+          textArea.style.opacity = "0";
+
+          document.body.appendChild(textArea);
+
+          textArea.focus();
+          textArea.select();
+
+          try{
+            document.execCommand("copy");
+
+            E.copyOk.style.display = "inline";
+
+            window.setTimeout(function(){
+              E.copyOk.style.display = "none";
+            }, 1400);
+          } catch(copyError){
+            window.alert(
+              "The summary could not be copied."
+            );
+          }
+
+          document.body.removeChild(textArea);
+        }
+      }
+
+      function resetCalculator(){
+        E.cameraPreset.value = "p1";
+
+        E.modeAltitude.checked = true;
+        E.modeGsd.checked = false;
+
+        E.altitudeUnit.value = "ft";
+        previousAltitudeUnit = "ft";
+
+        E.gsdUnit.value = "cm";
+        previousGsdUnit = "cm";
+
+        E.altitude.value = "200";
+        E.targetGsd.value = "2.50";
+
+        E.flightSpeed.value = "22";
+        E.speedUnit.value = "mph";
+
+        E.frontOverlapSlider.value = "75";
+        E.frontOverlapInput.value = "75";
+
+        E.sideOverlapSlider.value = "75";
+        E.sideOverlapInput.value = "75";
+
+        E.cameraDetails.open = false;
+
+        applyPreset();
+      }
+
+      E.cameraPreset.addEventListener(
+        "change",
+        applyPreset
+      );
+
+      E.restorePresetBtn.addEventListener(
+        "click",
+        applyPreset
+      );
+
+      E.modeAltitude.addEventListener(
+        "change",
+        render
+      );
+
+      E.modeGsd.addEventListener(
+        "change",
+        render
+      );
+
+      [
+        E.cameraName,
+        E.focalLength,
+        E.sensorWidth,
+        E.sensorHeight,
+        E.imageWidth,
+        E.imageHeight,
+        E.minimumTrigger,
+        E.cameraOrientation,
+        E.altitude,
+        E.targetGsd,
+        E.flightSpeed,
+        E.speedUnit
+      ].forEach(function(node){
+        node.addEventListener("input", render);
+        node.addEventListener("change", render);
+      });
+
+      E.frontOverlapSlider.addEventListener(
+        "input",
+        function(){
+          syncOverlapFromSlider(
+            E.frontOverlapSlider,
+            E.frontOverlapInput
+          );
+        }
+      );
+
+      E.frontOverlapInput.addEventListener(
+        "input",
+        function(){
+          syncOverlapFromInput(
+            E.frontOverlapInput,
+            E.frontOverlapSlider
+          );
+        }
+      );
+
+      E.frontOverlapInput.addEventListener(
+        "change",
+        function(){
+          const value = Number(
+            E.frontOverlapInput.value
+          );
+
+          if(Number.isFinite(value)){
+            const clampedValue =
+              clamp(value, 0, 95);
+
+            E.frontOverlapInput.value =
+              clampedValue;
+
+            E.frontOverlapSlider.value =
+              clampedValue;
+          }
+
+          render();
+        }
+      );
+
+      E.sideOverlapSlider.addEventListener(
+        "input",
+        function(){
+          syncOverlapFromSlider(
+            E.sideOverlapSlider,
+            E.sideOverlapInput
+          );
+        }
+      );
+
+      E.sideOverlapInput.addEventListener(
+        "input",
+        function(){
+          syncOverlapFromInput(
+            E.sideOverlapInput,
+            E.sideOverlapSlider
+          );
+        }
+      );
+
+      E.sideOverlapInput.addEventListener(
+        "change",
+        function(){
+          const value = Number(
+            E.sideOverlapInput.value
+          );
+
+          if(Number.isFinite(value)){
+            const clampedValue =
+              clamp(value, 0, 95);
+
+            E.sideOverlapInput.value =
+              clampedValue;
+
+            E.sideOverlapSlider.value =
+              clampedValue;
+          }
+
+          render();
+        }
+      );
+
+      E.altitudeUnit.addEventListener(
+        "change",
+        function(){
+          convertAltitudeUnit();
+          render();
+        }
+      );
+
+      E.gsdUnit.addEventListener(
+        "change",
+        function(){
+          convertGsdUnit();
+          render();
+        }
+      );
+
+      E.copyBtn.addEventListener(
+        "click",
+        copySummary
+      );
+
+      E.resetBtn.addEventListener(
+        "click",
+        resetCalculator
+      );
+
+      applyPreset();
+    })();
+  </script>
+</body>
+</html>
