@@ -416,9 +416,14 @@
           button.className = 'choice';
           const left = document.createElement('span');
           const title = document.createElement('strong');
-          title.textContent = `${item.metar.icaoId} · ${item.metar.name || 'Reporting station'}`;
+          title.textContent =
+  `${item.metar.icaoId} · ${
+    item.airport?.name ||
+    item.metar.name ||
+    'Reporting station'
+  }`;
           const context = document.createElement('small');
-          context.textContent = label;
+          context.textContent =   Number.isFinite(item.distanceMiles)     ? `${label}`     : label;
           left.append(title, document.createElement('br'), context);
 const right =
   document.createElement(
