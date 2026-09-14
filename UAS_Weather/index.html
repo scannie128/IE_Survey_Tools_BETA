@@ -422,9 +422,18 @@
     item.metar.name ||
     'Reporting station'
   }`;
-          const context = document.createElement('small');
-          context.textContent =   Number.isFinite(item.distanceMiles)     ? `${label}`     : label;
-          left.append(title, document.createElement('br'), context);
+const context = document.createElement('small');
+
+context.textContent =
+  item.metar?.name ||
+  item.airport?.name ||
+  label;
+
+left.append(
+  title,
+  document.createElement('br'),
+  context
+);
 const right =
   document.createElement(
     "div"
@@ -498,10 +507,9 @@ if (
   );
 
   if (
-    Number.isFinite(
-      projectElevation
-    )
-  ) {
+  Number.isFinite(item.elevationFt) &&
+  Number.isFinite(projectElevation)
+) {
 
     const delta =
       Math.round(
