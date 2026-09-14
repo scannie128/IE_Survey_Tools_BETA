@@ -1343,7 +1343,7 @@
        ========================================================= */
 
     const METAR_API =
-      "https://aviationweather.gov/api/data/metar";
+      "https://uas-weather-proxy.scannie128.workers.dev";
 
     const COMPASS_POINTS = [
       "N",
@@ -2154,8 +2154,7 @@
         const requestUrl =
           METAR_API +
           "?ids=" +
-          encodeURIComponent(stationId) +
-          "&format=json";
+          encodeURIComponent(stationId);
 
         console.info(
           "Requesting latest METAR:",
