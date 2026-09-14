@@ -1,0 +1,2297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+  >
+
+  <meta
+    name="description"
+    content="METAR aviation weather dashboard with pressure altitude, density altitude, wind, temperature, and time-zone conversion."
+  >
+
+  <meta name="theme-color" content="#00945e">
+
+  <title>METAR Flight Conditions</title>
+
+  <style>
+    /* =========================================================
+       INTERSTATE ENGINEERING THEME
+       ========================================================= */
+
+    :root {
+      --ie-green: #00945e;
+      --ie-green-dark: #00784c;
+      --ie-green-darker: #00643f;
+      --ie-green-light: #e8f6f0;
+
+      --granite: #323e48;
+      --granite-dark: #1b2530;
+      --gray: #7c8795;
+      --gray-dark: #596572;
+      --gray-light: #eef3f6;
+
+      --white: #ffffff;
+      --surface: #ffffff;
+      --background: #f7f9fb;
+
+      --border: rgba(50, 62, 72, 0.16);
+      --border-strong: rgba(50, 62, 72, 0.25);
+
+      --danger: #b42318;
+      --danger-background: #fff1f0;
+      --danger-border: rgba(180, 35, 24, 0.28);
+
+      --shadow-small:
+        0 5px 16px rgba(50, 62, 72, 0.07);
+
+      --shadow:
+        0 14px 36px rgba(50, 62, 72, 0.10);
+
+      --shadow-green:
+        0 10px 22px rgba(0, 148, 94, 0.20);
+
+      --radius-small: 10px;
+      --radius: 14px;
+      --radius-large: 18px;
+
+      --transition: 180ms ease;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      min-height: 100%;
+      scroll-behavior: smooth;
+    }
+
+    body {
+      min-height: 100vh;
+      margin: 0;
+      color: var(--granite-dark);
+      background:
+        radial-gradient(
+          900px 600px at 20% 0%,
+          rgba(0, 148, 94, 0.10) 0%,
+          rgba(0, 148, 94, 0) 55%
+        ),
+        linear-gradient(
+          180deg,
+          #ffffff 0%,
+          #f7f9fb 55%,
+          #eef3f6 100%
+        );
+      font-family:
+        "Futura PT",
+        Futura,
+        Jost,
+        "Avenir Next",
+        "Segoe UI",
+        Arial,
+        sans-serif;
+      line-height: 1.5;
+    }
+
+    button,
+    input,
+    select {
+      font: inherit;
+    }
+
+    button {
+      touch-action: manipulation;
+    }
+
+    .app-shell {
+      min-height: 100vh;
+    }
+
+    /* =========================================================
+       HEADER
+       ========================================================= */
+
+    .site-header {
+      position: relative;
+      z-index: 2;
+      overflow: hidden;
+      padding:
+        calc(22px + env(safe-area-inset-top))
+        22px
+        22px;
+      background:
+        linear-gradient(
+          135deg,
+          rgba(0, 148, 94, 0.14) 0%,
+          rgba(0, 148, 94, 0) 46%
+        ),
+        radial-gradient(
+          900px 420px at 22% -10%,
+          rgba(0, 148, 94, 0.18) 0%,
+          rgba(0, 148, 94, 0) 60%
+        ),
+        #ffffff;
+      border-bottom: 4px solid rgba(0, 148, 94, 0.35);
+    }
+
+    .header-inner {
+      width: 100%;
+      max-width: 1120px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+    }
+
+    .brand-block {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      min-width: 0;
+    }
+
+    .brand-icon {
+      width: 48px;
+      height: 48px;
+      flex: 0 0 48px;
+      display: grid;
+      place-items: center;
+      color: var(--white);
+      background:
+        linear-gradient(
+          180deg,
+          var(--ie-green) 0%,
+          var(--ie-green-dark) 100%
+        );
+      border: 1px solid rgba(0, 120, 76, 0.35);
+      border-radius: 13px;
+      box-shadow: var(--shadow-green);
+    }
+
+    .brand-icon svg {
+      width: 25px;
+      height: 25px;
+      stroke: currentColor;
+    }
+
+    .header-title {
+      margin: 0;
+      color: var(--granite);
+      font-size: clamp(1.45rem, 4vw, 2.05rem);
+      font-weight: 800;
+      letter-spacing: -0.035em;
+      line-height: 1.05;
+    }
+
+    .header-subtitle {
+      margin: 6px 0 0;
+      color: var(--gray);
+      font-size: 0.9rem;
+      font-weight: 500;
+    }
+
+    .header-tagline {
+      flex: 0 0 auto;
+      color: var(--gray);
+      font-size: 0.78rem;
+      font-weight: 600;
+      line-height: 1.45;
+      text-align: right;
+    }
+
+    /* =========================================================
+       MAIN LAYOUT
+       ========================================================= */
+
+    .main-content {
+      width: 100%;
+      max-width: 1120px;
+      margin: 0 auto;
+      padding:
+        26px
+        22px
+        calc(32px + env(safe-area-inset-bottom));
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .lookup-card {
+      padding: 22px;
+      margin-bottom: 20px;
+    }
+
+    .section-heading {
+      margin: 0 0 17px;
+      color: var(--granite);
+      font-size: 0.82rem;
+      font-weight: 800;
+      letter-spacing: 0.09em;
+      text-transform: uppercase;
+    }
+
+    .lookup-grid {
+      display: grid;
+      grid-template-columns:
+        minmax(155px, 0.9fr)
+        minmax(190px, 1fr)
+        minmax(180px, 0.9fr)
+        auto;
+      gap: 15px;
+      align-items: end;
+    }
+
+    .field-group {
+      min-width: 0;
+    }
+
+    .field-label {
+      display: block;
+      margin-bottom: 7px;
+      color: var(--gray);
+      font-size: 0.76rem;
+      font-weight: 700;
+    }
+
+    .text-input,
+    .select-input {
+      width: 100%;
+      min-height: 44px;
+      padding: 10px 13px;
+      color: var(--granite-dark);
+      background: var(--white);
+      border: 1px solid var(--border-strong);
+      border-radius: 11px;
+      outline: none;
+      transition:
+        border-color var(--transition),
+        box-shadow var(--transition),
+        background-color var(--transition);
+    }
+
+    .text-input:hover,
+    .select-input:hover {
+      border-color: rgba(0, 148, 94, 0.52);
+    }
+
+    .text-input:focus,
+    .select-input:focus {
+      border-color: var(--ie-green);
+      box-shadow: 0 0 0 4px rgba(0, 148, 94, 0.12);
+    }
+
+    .station-input {
+      color: var(--granite);
+      font-size: 1.05rem;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .select-input {
+      cursor: pointer;
+    }
+
+    .primary-button {
+      min-height: 44px;
+      padding: 10px 21px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 9px;
+      color: var(--white);
+      background:
+        linear-gradient(
+          180deg,
+          var(--ie-green) 0%,
+          var(--ie-green-dark) 100%
+        );
+      border: 1px solid rgba(0, 100, 63, 0.45);
+      border-radius: 11px;
+      box-shadow: var(--shadow-green);
+      cursor: pointer;
+      font-size: 0.9rem;
+      font-weight: 800;
+      white-space: nowrap;
+      transition:
+        transform var(--transition),
+        filter var(--transition),
+        box-shadow var(--transition);
+    }
+
+    .primary-button:hover:not(:disabled) {
+      filter: brightness(1.06);
+      transform: translateY(-1px);
+      box-shadow:
+        0 13px 25px rgba(0, 148, 94, 0.24);
+    }
+
+    .primary-button:active:not(:disabled) {
+      transform: translateY(0);
+    }
+
+    .primary-button:focus-visible {
+      outline: 3px solid rgba(0, 148, 94, 0.25);
+      outline-offset: 3px;
+    }
+
+    .primary-button:disabled {
+      opacity: 0.65;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .button-icon {
+      width: 17px;
+      height: 17px;
+      stroke: currentColor;
+    }
+
+    .spinner {
+      width: 17px;
+      height: 17px;
+      border: 2px solid rgba(255, 255, 255, 0.42);
+      border-top-color: var(--white);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    /* =========================================================
+       ERROR AND EMPTY STATES
+       ========================================================= */
+
+    .message-panel {
+      margin-bottom: 20px;
+      padding: 17px;
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      border-radius: var(--radius);
+    }
+
+    .message-panel[hidden] {
+      display: none;
+    }
+
+    .error-panel {
+      color: var(--danger);
+      background: var(--danger-background);
+      border: 1px solid var(--danger-border);
+    }
+
+    .message-icon {
+      width: 21px;
+      height: 21px;
+      flex: 0 0 21px;
+      margin-top: 1px;
+      stroke: currentColor;
+    }
+
+    .message-title {
+      margin-bottom: 2px;
+      font-weight: 800;
+    }
+
+    .message-text {
+      font-size: 0.88rem;
+    }
+
+    .empty-state {
+      padding: 55px 24px;
+      text-align: center;
+      background: rgba(255, 255, 255, 0.88);
+      border: 1px dashed rgba(0, 148, 94, 0.58);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-small);
+    }
+
+    .empty-state[hidden] {
+      display: none;
+    }
+
+    .empty-icon {
+      width: 52px;
+      height: 52px;
+      margin: 0 auto 14px;
+      color: var(--ie-green);
+    }
+
+    .empty-icon svg {
+      width: 100%;
+      height: 100%;
+      stroke: currentColor;
+    }
+
+    .empty-title {
+      margin: 0;
+      color: var(--granite);
+      font-size: 1.25rem;
+      font-weight: 800;
+    }
+
+    .empty-text {
+      margin: 7px 0 0;
+      color: var(--gray);
+      font-size: 0.9rem;
+    }
+
+    /* =========================================================
+       RESULTS
+       ========================================================= */
+
+    .results-section[hidden] {
+      display: none;
+    }
+
+    .station-summary {
+      margin-bottom: 16px;
+      padding: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+    }
+
+    .station-summary-left {
+      min-width: 0;
+    }
+
+    .station-title-row {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .station-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 31px;
+      padding: 5px 12px;
+      color: var(--ie-green);
+      background: rgba(0, 148, 94, 0.06);
+      border: 1px solid rgba(0, 148, 94, 0.34);
+      border-radius: 999px;
+      font-size: 0.88rem;
+      font-weight: 800;
+      letter-spacing: 0.05em;
+    }
+
+    .station-name {
+      color: var(--granite);
+      font-size: 1.26rem;
+      font-weight: 800;
+    }
+
+    .station-meta {
+      margin-top: 7px;
+      color: var(--gray);
+      font-size: 0.87rem;
+    }
+
+    .altimeter-readout {
+      flex: 0 0 auto;
+      color: var(--gray-dark);
+      font-size: 0.9rem;
+      font-weight: 700;
+      text-align: right;
+    }
+
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .metric-card {
+      min-height: 154px;
+      padding: 20px;
+      opacity: 0;
+      transform: translateY(7px);
+      animation: card-enter 320ms ease forwards;
+    }
+
+    .metric-card:nth-child(2) {
+      animation-delay: 40ms;
+    }
+
+    .metric-card:nth-child(3) {
+      animation-delay: 80ms;
+    }
+
+    .metric-card:nth-child(4) {
+      animation-delay: 120ms;
+    }
+
+    .metric-card:nth-child(5) {
+      animation-delay: 160ms;
+    }
+
+    .metric-card:nth-child(6) {
+      animation-delay: 200ms;
+    }
+
+    @keyframes card-enter {
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .metric-heading {
+      margin-bottom: 13px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--gray);
+      font-size: 0.74rem;
+      font-weight: 800;
+      letter-spacing: 0.075em;
+      text-transform: uppercase;
+    }
+
+    .metric-icon {
+      width: 18px;
+      height: 18px;
+      flex: 0 0 18px;
+      color: var(--ie-green);
+      stroke: currentColor;
+    }
+
+    .metric-value {
+      color: var(--granite);
+      font-size: clamp(1.55rem, 3.2vw, 2rem);
+      font-weight: 800;
+      letter-spacing: -0.035em;
+      line-height: 1.1;
+      overflow-wrap: anywhere;
+    }
+
+    .metric-subvalue {
+      margin-top: 8px;
+      color: var(--gray-dark);
+      font-size: 0.84rem;
+      line-height: 1.45;
+    }
+
+    /* =========================================================
+       WIND INDICATOR
+       ========================================================= */
+
+    .wind-panel {
+      margin-top: 16px;
+      padding: 21px;
+      display: flex;
+      align-items: center;
+      gap: 22px;
+    }
+
+    .wind-compass {
+      position: relative;
+      width: 116px;
+      height: 116px;
+      flex: 0 0 116px;
+      border: 2px solid rgba(0, 148, 94, 0.32);
+      border-radius: 50%;
+      background:
+        radial-gradient(
+          circle,
+          rgba(0, 148, 94, 0.10) 0 7%,
+          transparent 8%
+        ),
+        linear-gradient(
+          90deg,
+          transparent 49.3%,
+          rgba(50, 62, 72, 0.12) 49.3% 50.7%,
+          transparent 50.7%
+        ),
+        linear-gradient(
+          0deg,
+          transparent 49.3%,
+          rgba(50, 62, 72, 0.12) 49.3% 50.7%,
+          transparent 50.7%
+        ),
+        rgba(0, 148, 94, 0.045);
+    }
+
+    .compass-label {
+      position: absolute;
+      z-index: 3;
+      color: var(--granite);
+      font-size: 0.67rem;
+      font-weight: 800;
+      line-height: 1;
+    }
+
+    .compass-north {
+      top: 8px;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+
+    .compass-east {
+      top: 50%;
+      right: 8px;
+      transform: translateY(-50%);
+    }
+
+    .compass-south {
+      bottom: 8px;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+
+    .compass-west {
+      top: 50%;
+      left: 8px;
+      transform: translateY(-50%);
+    }
+
+    .wind-arrow-wrapper {
+      position: absolute;
+      inset: 16px;
+      z-index: 2;
+      transform-origin: center;
+      transition: transform 350ms ease;
+    }
+
+    .wind-arrow {
+      position: absolute;
+      top: 5px;
+      bottom: 5px;
+      left: 50%;
+      width: 4px;
+      transform: translateX(-50%);
+      background: var(--ie-green);
+      border-radius: 999px;
+    }
+
+    .wind-arrow::after {
+      content: "";
+      position: absolute;
+      bottom: -1px;
+      left: 50%;
+      width: 14px;
+      height: 14px;
+      border-right: 4px solid var(--ie-green);
+      border-bottom: 4px solid var(--ie-green);
+      transform: translateX(-50%) rotate(45deg);
+    }
+
+    .compass-center {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      z-index: 4;
+      width: 13px;
+      height: 13px;
+      background: var(--granite);
+      border: 2px solid var(--white);
+      border-radius: 50%;
+      box-shadow: 0 2px 6px rgba(50, 62, 72, 0.24);
+      transform: translate(-50%, -50%);
+    }
+
+    .wind-content {
+      min-width: 0;
+    }
+
+    .wind-title {
+      margin: 0;
+      color: var(--granite);
+      font-size: 1rem;
+      font-weight: 800;
+    }
+
+    .wind-reading {
+      margin: 5px 0 0;
+      color: var(--ie-green);
+      font-size: 1.32rem;
+      font-weight: 800;
+    }
+
+    .wind-description {
+      max-width: 670px;
+      margin: 7px 0 0;
+      color: var(--gray);
+      font-size: 0.86rem;
+      line-height: 1.5;
+    }
+
+    /* =========================================================
+       RAW METAR
+       ========================================================= */
+
+    .raw-metar-card {
+      margin-top: 16px;
+      padding: 20px;
+      border-color: rgba(0, 148, 94, 0.27);
+    }
+
+    .raw-metar-label {
+      margin-bottom: 11px;
+      color: var(--ie-green);
+      font-size: 0.76rem;
+      font-weight: 800;
+      letter-spacing: 0.09em;
+      text-transform: uppercase;
+    }
+
+    .raw-metar-text {
+      min-height: 58px;
+      margin: 0;
+      padding: 15px;
+      color: var(--granite-dark);
+      background: #f3f6f8;
+      border: 2px dashed rgba(0, 148, 94, 0.42);
+      border-radius: 11px;
+      font-family:
+        "Cascadia Code",
+        "SFMono-Regular",
+        Consolas,
+        "Liberation Mono",
+        monospace;
+      font-size: 0.86rem;
+      line-height: 1.55;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+    }
+
+    .disclaimer {
+      margin: 16px 2px 0;
+      color: var(--gray);
+      font-size: 0.74rem;
+      line-height: 1.55;
+    }
+
+    /* =========================================================
+       RESPONSIVE STYLES
+       ========================================================= */
+
+    @media (max-width: 900px) {
+      .lookup-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .primary-button {
+        width: 100%;
+      }
+
+      .metrics-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 650px) {
+      .site-header {
+        padding-left: 16px;
+        padding-right: 16px;
+      }
+
+      .main-content {
+        padding-left: 14px;
+        padding-right: 14px;
+      }
+
+      .header-tagline {
+        display: none;
+      }
+
+      .brand-block {
+        align-items: flex-start;
+      }
+
+      .brand-icon {
+        width: 43px;
+        height: 43px;
+        flex-basis: 43px;
+      }
+
+      .header-subtitle {
+        font-size: 0.82rem;
+      }
+
+      .lookup-card {
+        padding: 17px;
+      }
+
+      .lookup-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .metrics-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .station-summary {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .altimeter-readout {
+        text-align: left;
+      }
+
+      .metric-card {
+        min-height: 0;
+      }
+
+      .wind-panel {
+        align-items: center;
+        flex-direction: column;
+        text-align: center;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        scroll-behavior: auto !important;
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="app-shell">
+
+    <!-- =======================================================
+         HEADER
+         ======================================================= -->
+
+    <header class="site-header">
+      <div class="header-inner">
+
+        <div class="brand-block">
+          <div class="brand-icon" aria-hidden="true">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M20 10c0 5-8 12-8 12S4 15 4 10a8 8 0 1 1 16 0Z"></path>
+              <circle cx="12" cy="10" r="2.5"></circle>
+            </svg>
+          </div>
+
+          <div>
+            <h1 class="header-title">METAR Flight Conditions</h1>
+
+            <p class="header-subtitle">
+              Current aviation weather and altitude calculations.
+            </p>
+          </div>
+        </div>
+
+        <div class="header-tagline">
+          Professionals You Need,<br>
+          People You Trust.
+        </div>
+
+      </div>
+    </header>
+
+    <!-- =======================================================
+         MAIN CONTENT
+         ======================================================= -->
+
+    <main class="main-content">
+
+      <!-- LOOKUP PANEL -->
+
+      <section class="card lookup-card">
+        <h2 class="section-heading">Weather Station Lookup</h2>
+
+        <div class="lookup-grid">
+
+          <div class="field-group">
+            <label class="field-label" for="stationInput">
+              Airport / station identifier
+            </label>
+
+            <input
+              id="stationInput"
+              class="text-input station-input"
+              type="text"
+              value="KBIL"
+              maxlength="4"
+              autocomplete="off"
+              autocapitalize="characters"
+              spellcheck="false"
+              aria-describedby="stationHelp"
+            >
+          </div>
+
+          <div class="field-group">
+            <label class="field-label" for="timeZoneSelect">
+              Display time zone
+            </label>
+
+            <select id="timeZoneSelect" class="select-input">
+              <option value="America/Denver" selected>
+                Mountain
+              </option>
+
+              <option value="America/Chicago">
+                Central
+              </option>
+
+              <option value="America/New_York">
+                Eastern
+              </option>
+
+              <option value="America/Los_Angeles">
+                Pacific
+              </option>
+
+              <option value="America/Anchorage">
+                Alaska
+              </option>
+
+              <option value="Pacific/Honolulu">
+                Hawaii
+              </option>
+
+              <option value="UTC">
+                UTC / Zulu
+              </option>
+            </select>
+          </div>
+
+          <div class="field-group">
+            <label class="field-label" for="windUnitSelect">
+              Wind speed unit
+            </label>
+
+            <select id="windUnitSelect" class="select-input">
+              <option value="kt" selected>Knots</option>
+              <option value="mph">Miles per hour</option>
+              <option value="kmh">Kilometres per hour</option>
+              <option value="ms">Metres per second</option>
+            </select>
+          </div>
+
+          <button
+            id="getMetarButton"
+            class="primary-button"
+            type="button"
+          >
+            <span id="buttonIcon" aria-hidden="true">
+              <svg
+                class="button-icon"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M21 12a9 9 0 1 1-2.64-6.36"></path>
+                <path d="M21 3v6h-6"></path>
+              </svg>
+            </span>
+
+            <span id="buttonText">Get METAR</span>
+          </button>
+
+        </div>
+      </section>
+
+      <!-- ERROR PANEL -->
+
+      <section
+        id="errorPanel"
+        class="message-panel error-panel"
+        role="alert"
+        hidden
+      >
+        <svg
+          class="message-icon"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="12" y1="8" x2="12" y2="12"></line>
+          <line x1="12" y1="16" x2="12.01" y2="16"></line>
+        </svg>
+
+        <div>
+          <div class="message-title">METAR unavailable</div>
+          <div id="errorMessage" class="message-text"></div>
+        </div>
+      </section>
+
+      <!-- EMPTY STATE -->
+
+      <section id="emptyState" class="empty-state">
+        <div class="empty-icon" aria-hidden="true">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke-width="1.6"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <circle cx="12" cy="12" r="9"></circle>
+            <path d="m16 8-2.6 5.4L8 16l2.6-5.4L16 8Z"></path>
+            <circle cx="12" cy="12" r="1"></circle>
+          </svg>
+        </div>
+
+        <h2 class="empty-title">
+          Enter an airport identifier to begin
+        </h2>
+
+        <p id="stationHelp" class="empty-text">
+          Try KBIL, KBIS, KDIK, or any reporting ICAO station.
+        </p>
+      </section>
+
+      <!-- RESULTS -->
+
+      <section id="resultsSection" class="results-section" hidden>
+
+        <!-- STATION SUMMARY -->
+
+        <div class="card station-summary">
+          <div class="station-summary-left">
+
+            <div class="station-title-row">
+              <span id="stationBadge" class="station-badge">
+                KBIL
+              </span>
+
+              <span id="stationName" class="station-name">
+                Reporting Station
+              </span>
+            </div>
+
+            <div id="stationElevation" class="station-meta">
+              Station elevation: Unavailable
+            </div>
+          </div>
+
+          <div id="altimeterReadout" class="altimeter-readout">
+            Altimeter: Unavailable
+          </div>
+        </div>
+
+        <!-- METRIC CARDS -->
+
+        <div class="metrics-grid">
+
+          <article class="card metric-card">
+            <div class="metric-heading">
+              <svg
+                class="metric-icon"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <circle cx="12" cy="12" r="9"></circle>
+                <path d="M12 7v5l3 2"></path>
+              </svg>
+
+              Observation Time · Zulu
+            </div>
+
+            <div id="zuluTime" class="metric-value">
+              Unavailable
+            </div>
+
+            <div class="metric-subvalue">
+              Coordinated Universal Time
+            </div>
+          </article>
+
+          <article class="card metric-card">
+            <div class="metric-heading">
+              <svg
+                class="metric-icon"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <circle cx="12" cy="12" r="9"></circle>
+                <path d="M12 7v5l3 2"></path>
+              </svg>
+
+              Selected Local Time
+            </div>
+
+            <div id="localTime" class="metric-value">
+              Unavailable
+            </div>
+
+            <div id="localTimeZone" class="metric-subvalue">
+              Mountain
+            </div>
+          </article>
+
+          <article class="card metric-card">
+            <div class="metric-heading">
+              <svg
+                class="metric-icon"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M12 14a2 2 0 1 0 0 4 2 2 0 0 0 0-4Z"></path>
+                <path d="M12 14V4"></path>
+                <path d="M5.5 9a8 8 0 0 1 13 0"></path>
+                <path d="M4 13h2"></path>
+                <path d="M18 13h2"></path>
+              </svg>
+
+              Pressure Altitude
+            </div>
+
+            <div id="pressureAltitude" class="metric-value">
+              Unavailable
+            </div>
+
+            <div class="metric-subvalue">
+              Approximate, based on station elevation and altimeter
+            </div>
+          </article>
+
+          <article class="card metric-card">
+            <div class="metric-heading">
+              <svg
+                class="metric-icon"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M12 14a2 2 0 1 0 0 4 2 2 0 0 0 0-4Z"></path>
+                <path d="M12 14V4"></path>
+                <path d="M5.5 9a8 8 0 0 1 13 0"></path>
+                <path d="M4 13h2"></path>
+                <path d="M18 13h2"></path>
+              </svg>
+
+              Density Altitude
+            </div>
+
+            <div id="densityAltitude" class="metric-value">
+              Unavailable
+            </div>
+
+            <div class="metric-subvalue">
+              Approximate standard-atmosphere method
+            </div>
+          </article>
+
+          <article class="card metric-card">
+            <div class="metric-heading">
+              <svg
+                class="metric-icon"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M3 8h10a3 3 0 1 0-3-3"></path>
+                <path d="M3 12h15a3 3 0 1 1-3 3"></path>
+                <path d="M3 16h7"></path>
+              </svg>
+
+              Wind
+            </div>
+
+            <div id="windSpeed" class="metric-value">
+              Unavailable
+            </div>
+
+            <div id="windDetails" class="metric-subvalue">
+              Direction unavailable
+            </div>
+          </article>
+
+          <article class="card metric-card">
+            <div class="metric-heading">
+              <svg
+                class="metric-icon"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M14 14.76V5a4 4 0 0 0-8 0v9.76a6 6 0 1 0 8 0Z"></path>
+              </svg>
+
+              Temperature
+            </div>
+
+            <div id="temperature" class="metric-value">
+              Unavailable
+            </div>
+
+            <div id="dewPoint" class="metric-subvalue">
+              Dew point unavailable
+            </div>
+          </article>
+
+        </div>
+
+        <!-- WIND DIRECTION -->
+
+        <section id="windPanel" class="card wind-panel">
+
+          <div
+            class="wind-compass"
+            role="img"
+            aria-label="Wind direction compass"
+          >
+            <span class="compass-label compass-north">N</span>
+            <span class="compass-label compass-east">E</span>
+            <span class="compass-label compass-south">S</span>
+            <span class="compass-label compass-west">W</span>
+
+            <div
+              id="windArrowWrapper"
+              class="wind-arrow-wrapper"
+            >
+              <div class="wind-arrow"></div>
+            </div>
+
+            <div class="compass-center"></div>
+          </div>
+
+          <div class="wind-content">
+            <h2 class="wind-title">Wind Direction Indicator</h2>
+
+            <p id="windDirectionReading" class="wind-reading">
+              Direction unavailable
+            </p>
+
+            <p class="wind-description">
+              The arrow points toward the direction the wind is
+              moving. The reported METAR direction identifies the
+              direction the wind is coming from.
+            </p>
+          </div>
+
+        </section>
+
+        <!-- RAW METAR -->
+
+        <section class="card raw-metar-card">
+          <div class="raw-metar-label">Raw METAR</div>
+
+          <pre id="rawMetar" class="raw-metar-text">Unavailable</pre>
+        </section>
+
+        <p class="disclaimer">
+          For situational awareness only. Verify weather and
+          operational decisions with official aviation weather
+          sources. Pressure altitude and density altitude are
+          calculated estimates and are not values directly reported
+          in the METAR.
+        </p>
+
+      </section>
+    </main>
+  </div>
+
+  <script>
+    "use strict";
+
+    /* =========================================================
+       CONFIGURATION
+       ========================================================= */
+
+    const METAR_API =
+      "https://aviationweather.gov/api/data/metar";
+
+    const COMPASS_POINTS = [
+      "N",
+      "NNE",
+      "NE",
+      "ENE",
+      "E",
+      "ESE",
+      "SE",
+      "SSE",
+      "S",
+      "SSW",
+      "SW",
+      "WSW",
+      "W",
+      "WNW",
+      "NW",
+      "NNW"
+    ];
+
+    const WIND_UNIT_LABELS = {
+      kt: "kt",
+      mph: "mph",
+      kmh: "km/h",
+      ms: "m/s"
+    };
+
+    const TIME_ZONE_LABELS = {
+      "America/Denver": "Mountain",
+      "America/Chicago": "Central",
+      "America/New_York": "Eastern",
+      "America/Los_Angeles": "Pacific",
+      "America/Anchorage": "Alaska",
+      "Pacific/Honolulu": "Hawaii",
+      "UTC": "UTC / Zulu"
+    };
+
+    /* =========================================================
+       DOM ELEMENTS
+       ========================================================= */
+
+    const stationInput =
+      document.getElementById("stationInput");
+
+    const timeZoneSelect =
+      document.getElementById("timeZoneSelect");
+
+    const windUnitSelect =
+      document.getElementById("windUnitSelect");
+
+    const getMetarButton =
+      document.getElementById("getMetarButton");
+
+    const buttonIcon =
+      document.getElementById("buttonIcon");
+
+    const buttonText =
+      document.getElementById("buttonText");
+
+    const errorPanel =
+      document.getElementById("errorPanel");
+
+    const errorMessage =
+      document.getElementById("errorMessage");
+
+    const emptyState =
+      document.getElementById("emptyState");
+
+    const resultsSection =
+      document.getElementById("resultsSection");
+
+    const stationBadge =
+      document.getElementById("stationBadge");
+
+    const stationName =
+      document.getElementById("stationName");
+
+    const stationElevation =
+      document.getElementById("stationElevation");
+
+    const altimeterReadout =
+      document.getElementById("altimeterReadout");
+
+    const zuluTime =
+      document.getElementById("zuluTime");
+
+    const localTime =
+      document.getElementById("localTime");
+
+    const localTimeZone =
+      document.getElementById("localTimeZone");
+
+    const pressureAltitude =
+      document.getElementById("pressureAltitude");
+
+    const densityAltitude =
+      document.getElementById("densityAltitude");
+
+    const windSpeed =
+      document.getElementById("windSpeed");
+
+    const windDetails =
+      document.getElementById("windDetails");
+
+    const temperature =
+      document.getElementById("temperature");
+
+    const dewPoint =
+      document.getElementById("dewPoint");
+
+    const windPanel =
+      document.getElementById("windPanel");
+
+    const windArrowWrapper =
+      document.getElementById("windArrowWrapper");
+
+    const windDirectionReading =
+      document.getElementById("windDirectionReading");
+
+    const rawMetar =
+      document.getElementById("rawMetar");
+
+    /* =========================================================
+       APPLICATION STATE
+       ========================================================= */
+
+    let currentMetar = null;
+    let currentData = null;
+
+    /* =========================================================
+       GENERAL HELPERS
+       ========================================================= */
+
+    function getFirstAvailableValue(object, keys) {
+      for (const key of keys) {
+        const value = object?.[key];
+
+        if (
+          value !== undefined &&
+          value !== null &&
+          value !== ""
+        ) {
+          return value;
+        }
+      }
+
+      return null;
+    }
+
+    function toFiniteNumber(value) {
+      const converted = Number(value);
+
+      return Number.isFinite(converted)
+        ? converted
+        : null;
+    }
+
+    function escapeText(value) {
+      return value === null || value === undefined
+        ? ""
+        : String(value);
+    }
+
+    function formatInteger(value) {
+      if (!Number.isFinite(value)) {
+        return "Unavailable";
+      }
+
+      return Math.round(value).toLocaleString("en-US");
+    }
+
+    function degreesToCompass(degrees) {
+      if (!Number.isFinite(degrees)) {
+        return "Variable";
+      }
+
+      const index =
+        Math.round(degrees / 22.5) % 16;
+
+      return COMPASS_POINTS[index];
+    }
+
+    /* =========================================================
+       DATE AND TIME HELPERS
+       ========================================================= */
+
+    function parseObservationTime(value) {
+      if (
+        value === null ||
+        value === undefined ||
+        value === ""
+      ) {
+        return null;
+      }
+
+      if (value instanceof Date) {
+        return Number.isNaN(value.getTime())
+          ? null
+          : value;
+      }
+
+      if (
+        typeof value === "number" ||
+        /^\d+(\.\d+)?$/.test(String(value).trim())
+      ) {
+        const numericValue = Number(value);
+
+        /*
+          AviationWeather.gov may return Unix time in seconds.
+          JavaScript Date expects milliseconds.
+        */
+
+        const milliseconds =
+          numericValue < 100000000000
+            ? numericValue * 1000
+            : numericValue;
+
+        const numericDate = new Date(milliseconds);
+
+        return Number.isNaN(numericDate.getTime())
+          ? null
+          : numericDate;
+      }
+
+      const parsedDate = new Date(value);
+
+      return Number.isNaN(parsedDate.getTime())
+        ? null
+        : parsedDate;
+    }
+
+    function formatZuluTime(date) {
+      if (!(date instanceof Date)) {
+        return "Unavailable";
+      }
+
+      const day = String(date.getUTCDate()).padStart(2, "0");
+      const hours = String(date.getUTCHours()).padStart(2, "0");
+      const minutes = String(date.getUTCMinutes()).padStart(2, "0");
+
+      const month = new Intl.DateTimeFormat(
+        "en-US",
+        {
+          timeZone: "UTC",
+          month: "short"
+        }
+      ).format(date);
+
+      return `${day} ${month} ${hours}:${minutes}Z`;
+    }
+
+    function formatLocalTime(date, timeZone) {
+      if (!(date instanceof Date)) {
+        return "Unavailable";
+      }
+
+      try {
+        return new Intl.DateTimeFormat(
+          "en-US",
+          {
+            timeZone,
+            month: "short",
+            day: "numeric",
+            hour: "2-digit",
+            minute: "2-digit",
+            hour12: false,
+            timeZoneName: "short"
+          }
+        ).format(date);
+      } catch (error) {
+        console.error(
+          "Unable to format the selected time zone:",
+          error
+        );
+
+        return "Unavailable";
+      }
+    }
+
+    /* =========================================================
+       WIND HELPERS
+       ========================================================= */
+
+    function convertWindSpeed(knots, unit) {
+      if (!Number.isFinite(knots)) {
+        return null;
+      }
+
+      switch (unit) {
+        case "mph":
+          return knots * 1.150779;
+
+        case "kmh":
+          return knots * 1.852;
+
+        case "ms":
+          return knots * 0.514444;
+
+        case "kt":
+        default:
+          return knots;
+      }
+    }
+
+    function formatWindSpeed(knots, unit) {
+      const converted =
+        convertWindSpeed(knots, unit);
+
+      if (!Number.isFinite(converted)) {
+        return "Unavailable";
+      }
+
+      const decimalPlaces =
+        unit === "kt" ? 0 : 1;
+
+      return (
+        converted.toFixed(decimalPlaces) +
+        " " +
+        WIND_UNIT_LABELS[unit]
+      );
+    }
+
+    /* =========================================================
+       METAR NORMALIZATION AND CALCULATIONS
+       ========================================================= */
+
+    function normalizeMetar(metar) {
+      const stationId =
+        getFirstAvailableValue(
+          metar,
+          [
+            "icaoId",
+            "station_id",
+            "stationId"
+          ]
+        ) || stationInput.value.trim().toUpperCase();
+
+      const stationDisplayName =
+        getFirstAvailableValue(
+          metar,
+          [
+            "name",
+            "site",
+            "stationName"
+          ]
+        );
+
+      const rawObservation =
+        getFirstAvailableValue(
+          metar,
+          [
+            "rawOb",
+            "raw_text",
+            "raw"
+          ]
+        );
+
+      const temperatureC =
+        toFiniteNumber(
+          getFirstAvailableValue(
+            metar,
+            [
+              "temp",
+              "temp_c",
+              "temperature"
+            ]
+          )
+        );
+
+      const dewPointC =
+        toFiniteNumber(
+          getFirstAvailableValue(
+            metar,
+            [
+              "dewp",
+              "dewpoint",
+              "dewpoint_c"
+            ]
+          )
+        );
+
+      const elevationMetres =
+        toFiniteNumber(
+          getFirstAvailableValue(
+            metar,
+            [
+              "elev",
+              "elevation",
+              "elevation_m"
+            ]
+          )
+        );
+
+      const elevationFeet =
+        Number.isFinite(elevationMetres)
+          ? elevationMetres * 3.28084
+          : null;
+
+      let altimeter =
+        toFiniteNumber(
+          getFirstAvailableValue(
+            metar,
+            [
+              "altim",
+              "altimeter",
+              "altim_in_hg"
+            ]
+          )
+        );
+
+      /*
+        The Aviation Weather JSON altimeter value may be supplied
+        in hectopascals. Values above 100 are treated as hPa and
+        converted to inches of mercury.
+      */
+
+      if (
+        Number.isFinite(altimeter) &&
+        altimeter > 100
+      ) {
+        altimeter =
+          altimeter / 33.8638867;
+      }
+
+      const pressureAltitudeFeet =
+        Number.isFinite(elevationFeet) &&
+        Number.isFinite(altimeter)
+          ? elevationFeet +
+            (29.92 - altimeter) * 1000
+          : null;
+
+      const standardTemperatureC =
+        Number.isFinite(pressureAltitudeFeet)
+          ? 15 -
+            1.98 *
+            (pressureAltitudeFeet / 1000)
+          : null;
+
+      const densityAltitudeFeet =
+        Number.isFinite(pressureAltitudeFeet) &&
+        Number.isFinite(temperatureC) &&
+        Number.isFinite(standardTemperatureC)
+          ? pressureAltitudeFeet +
+            120 *
+            (
+              temperatureC -
+              standardTemperatureC
+            )
+          : null;
+
+      const windDirectionRaw =
+        getFirstAvailableValue(
+          metar,
+          [
+            "wdir",
+            "wind_dir_degrees",
+            "wind_direction"
+          ]
+        );
+
+      const windIsVariable =
+        typeof windDirectionRaw === "string" &&
+        windDirectionRaw.toUpperCase() === "VRB";
+
+      const windDirectionDegrees =
+        windIsVariable
+          ? null
+          : toFiniteNumber(windDirectionRaw);
+
+      const windSpeedKnots =
+        toFiniteNumber(
+          getFirstAvailableValue(
+            metar,
+            [
+              "wspd",
+              "wind_speed_kt",
+              "wind_speed"
+            ]
+          )
+        );
+
+      const windGustKnots =
+        toFiniteNumber(
+          getFirstAvailableValue(
+            metar,
+            [
+              "wgst",
+              "wind_gust_kt",
+              "wind_gust"
+            ]
+          )
+        );
+
+      const observationTime =
+        parseObservationTime(
+          getFirstAvailableValue(
+            metar,
+            [
+              "obsTime",
+              "reportTime",
+              "observation_time",
+              "receiptTime"
+            ]
+          )
+        );
+
+      return {
+        stationId,
+        stationDisplayName,
+        rawObservation,
+        temperatureC,
+        dewPointC,
+        elevationFeet,
+        altimeter,
+        pressureAltitudeFeet,
+        densityAltitudeFeet,
+        windDirectionDegrees,
+        windIsVariable,
+        windSpeedKnots,
+        windGustKnots,
+        observationTime
+      };
+    }
+
+    /* =========================================================
+       USER INTERFACE
+       ========================================================= */
+
+    function setLoading(isLoading) {
+      getMetarButton.disabled = isLoading;
+
+      if (isLoading) {
+        buttonIcon.innerHTML =
+          '<span class="spinner"></span>';
+
+        buttonText.textContent =
+          "Loading";
+      } else {
+        buttonIcon.innerHTML = `
+          <svg
+            class="button-icon"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M21 12a9 9 0 1 1-2.64-6.36"></path>
+            <path d="M21 3v6h-6"></path>
+          </svg>
+        `;
+
+        buttonText.textContent =
+          currentMetar ? "Refresh" : "Get METAR";
+      }
+    }
+
+    function showError(message) {
+      errorMessage.textContent = message;
+      errorPanel.hidden = false;
+    }
+
+    function clearError() {
+      errorMessage.textContent = "";
+      errorPanel.hidden = true;
+    }
+
+    function renderMetar() {
+      if (!currentData) {
+        return;
+      }
+
+      const selectedTimeZone =
+        timeZoneSelect.value;
+
+      const selectedWindUnit =
+        windUnitSelect.value;
+
+      stationBadge.textContent =
+        currentData.stationId || "Unknown";
+
+      stationName.textContent =
+        currentData.stationDisplayName ||
+        "Reporting Station";
+
+      stationElevation.textContent =
+        Number.isFinite(currentData.elevationFeet)
+          ? "Station elevation: " +
+            formatInteger(currentData.elevationFeet) +
+            " ft MSL"
+          : "Station elevation: Unavailable";
+
+      altimeterReadout.textContent =
+        Number.isFinite(currentData.altimeter)
+          ? "Altimeter: " +
+            currentData.altimeter.toFixed(2) +
+            " inHg"
+          : "Altimeter: Unavailable";
+
+      zuluTime.textContent =
+        formatZuluTime(
+          currentData.observationTime
+        );
+
+      localTime.textContent =
+        formatLocalTime(
+          currentData.observationTime,
+          selectedTimeZone
+        );
+
+      localTimeZone.textContent =
+        TIME_ZONE_LABELS[selectedTimeZone] ||
+        selectedTimeZone;
+
+      pressureAltitude.textContent =
+        Number.isFinite(
+          currentData.pressureAltitudeFeet
+        )
+          ? formatInteger(
+              currentData.pressureAltitudeFeet
+            ) + " ft"
+          : "Unavailable";
+
+      densityAltitude.textContent =
+        Number.isFinite(
+          currentData.densityAltitudeFeet
+        )
+          ? formatInteger(
+              currentData.densityAltitudeFeet
+            ) + " ft"
+          : "Unavailable";
+
+      renderWind(selectedWindUnit);
+
+      if (
+        Number.isFinite(currentData.temperatureC)
+      ) {
+        const fahrenheit =
+          currentData.temperatureC * 9 / 5 + 32;
+
+        temperature.textContent =
+          currentData.temperatureC.toFixed(0) +
+          "°C · " +
+          fahrenheit.toFixed(0) +
+          "°F";
+      } else {
+        temperature.textContent =
+          "Unavailable";
+      }
+
+      if (
+        Number.isFinite(currentData.dewPointC)
+      ) {
+        const dewPointFahrenheit =
+          currentData.dewPointC * 9 / 5 + 32;
+
+        dewPoint.textContent =
+          "Dew point " +
+          currentData.dewPointC.toFixed(0) +
+          "°C · " +
+          dewPointFahrenheit.toFixed(0) +
+          "°F";
+      } else {
+        dewPoint.textContent =
+          "Dew point unavailable";
+      }
+
+      rawMetar.textContent =
+        escapeText(
+          currentData.rawObservation ||
+          "Unavailable"
+        );
+
+      emptyState.hidden = true;
+      resultsSection.hidden = false;
+    }
+
+    function renderWind(selectedWindUnit) {
+      const speedText =
+        formatWindSpeed(
+          currentData.windSpeedKnots,
+          selectedWindUnit
+        );
+
+      const gustText =
+        Number.isFinite(
+          currentData.windGustKnots
+        )
+          ? formatWindSpeed(
+              currentData.windGustKnots,
+              selectedWindUnit
+            )
+          : null;
+
+      if (
+        Number.isFinite(currentData.windSpeedKnots) &&
+        currentData.windSpeedKnots === 0
+      ) {
+        windSpeed.textContent =
+          "Calm";
+
+        windDetails.textContent =
+          "No measurable wind reported";
+
+        windDirectionReading.textContent =
+          "Calm";
+
+        windPanel.hidden = false;
+        windArrowWrapper.style.display = "none";
+
+        return;
+      }
+
+      windSpeed.textContent =
+        speedText;
+
+      if (
+        currentData.windIsVariable ||
+        !Number.isFinite(
+          currentData.windDirectionDegrees
+        )
+      ) {
+        windDetails.textContent =
+          "Variable direction" +
+          (
+            gustText
+              ? " · Gust " + gustText
+              : ""
+          );
+
+        windDirectionReading.textContent =
+          "Variable direction";
+
+        windPanel.hidden = false;
+        windArrowWrapper.style.display = "none";
+
+        return;
+      }
+
+      const direction =
+        Math.round(
+          currentData.windDirectionDegrees
+        );
+
+      const paddedDirection =
+        String(direction).padStart(3, "0");
+
+      const compassDirection =
+        degreesToCompass(direction);
+
+      windDetails.textContent =
+        paddedDirection +
+        "° true · " +
+        compassDirection +
+        (
+          gustText
+            ? " · Gust " + gustText
+            : ""
+        );
+
+      windDirectionReading.textContent =
+        paddedDirection +
+        "° true · " +
+        compassDirection;
+
+      /*
+        METAR direction tells us where the wind comes from.
+        The arrow graphic points where the wind is going,
+        which is 180 degrees opposite.
+      */
+
+      const movementDirection =
+        (direction + 180) % 360;
+
+      windArrowWrapper.style.display = "block";
+      windArrowWrapper.style.transform =
+        "rotate(" + movementDirection + "deg)";
+
+      windPanel.hidden = false;
+    }
+
+    /* =========================================================
+       API REQUEST
+       ========================================================= */
+
+    async function loadMetar() {
+      const stationId =
+        stationInput.value
+          .trim()
+          .toUpperCase();
+
+      stationInput.value = stationId;
+
+      if (!/^[A-Z0-9]{3,4}$/.test(stationId)) {
+        showError(
+          "Enter a valid 3 or 4 character station identifier, such as KBIL."
+        );
+
+        stationInput.focus();
+        return;
+      }
+
+      clearError();
+      setLoading(true);
+
+      try {
+        const requestUrl =
+          METAR_API +
+          "?ids=" +
+          encodeURIComponent(stationId) +
+          "&format=json";
+
+        console.info(
+          "Requesting latest METAR:",
+          requestUrl
+        );
+
+        const response =
+          await fetch(
+            requestUrl,
+            {
+              method: "GET",
+              headers: {
+                Accept: "application/json"
+              },
+              cache: "no-store"
+            }
+          );
+
+        if (response.status === 204) {
+          throw new Error(
+            "No recent METAR was returned for " +
+            stationId +
+            "."
+          );
+        }
+
+        if (!response.ok) {
+          throw new Error(
+            "The aviation weather service returned HTTP " +
+            response.status +
+            "."
+          );
+        }
+
+        const responseData =
+          await response.json();
+
+        const metar =
+          Array.isArray(responseData)
+            ? responseData[0]
+            : responseData;
+
+        if (!metar) {
+          throw new Error(
+            "No recent METAR was returned for " +
+            stationId +
+            "."
+          );
+        }
+
+        console.info(
+          "METAR response received:",
+          metar
+        );
+
+        currentMetar = metar;
+        currentData = normalizeMetar(metar);
+
+        renderMetar();
+      } catch (error) {
+        console.error(
+          "METAR lookup failed:",
+          error
+        );
+
+        currentMetar = null;
+        currentData = null;
+
+        resultsSection.hidden = true;
+        emptyState.hidden = false;
+
+        const message =
+          error instanceof TypeError
+            ? "The METAR request could not be completed. This may be caused by a network connection issue or the weather service blocking a direct browser request."
+            : (
+                error?.message ||
+                "Unable to retrieve the METAR."
+              );
+
+        showError(message);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    /* =========================================================
+       EVENT LISTENERS
+       ========================================================= */
+
+    getMetarButton.addEventListener(
+      "click",
+      loadMetar
+    );
+
+    stationInput.addEventListener(
+      "input",
+      function () {
+        const cleaned =
+          stationInput.value
+            .toUpperCase()
+            .replace(/[^A-Z0-9]/g, "")
+            .slice(0, 4);
+
+        stationInput.value = cleaned;
+      }
+    );
+
+    stationInput.addEventListener(
+      "keydown",
+      function (event) {
+        if (event.key === "Enter") {
+          event.preventDefault();
+          loadMetar();
+        }
+      }
+    );
+
+    timeZoneSelect.addEventListener(
+      "change",
+      function () {
+        if (currentData) {
+          renderMetar();
+        }
+      }
+    );
+
+    windUnitSelect.addEventListener(
+      "change",
+      function () {
+        if (currentData) {
+          renderWind(
+            windUnitSelect.value
+          );
+        }
+      }
+    );
+  </script>
+</body>
+</html>
