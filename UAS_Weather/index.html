@@ -1,112 +1,591 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#00945e">
-<title>UAS Weather & Density Altitude</title>
-<style>
-:root{--g:#00945e;--gd:#00784c;--ink:#323e48;--text:#1b2530;--muted:#7c8795;--line:rgba(50,62,72,.17);--bg:#f7f9fb;--danger:#b42318;--shadow:0 14px 36px rgba(50,62,72,.10)}*{box-sizing:border-box}body{margin:0;min-height:100vh;color:var(--text);font:15px/1.5 "Segoe UI",Arial,sans-serif;background:radial-gradient(900px 600px at 20% 0,rgba(0,148,94,.10),transparent 55%),linear-gradient(#fff,var(--bg) 55%,#eef3f6)}button,input,select,textarea{font:inherit}.top{padding:22px;border-bottom:4px solid rgba(0,148,94,.35);background:linear-gradient(135deg,rgba(0,148,94,.14),transparent 46%),#fff}.topin,.wrap{max-width:1120px;margin:auto}.brand{display:flex;align-items:center;gap:14px}.logo{display:grid;place-items:center;width:48px;height:48px;border-radius:13px;background:linear-gradient(var(--g),var(--gd));color:#fff;font-size:24px;box-shadow:0 10px 22px rgba(0,148,94,.2)}h1{margin:0;color:var(--ink);font-size:clamp(1.45rem,4vw,2.05rem);letter-spacing:-.035em}.sub{margin:5px 0 0;color:var(--muted)}.wrap{padding:24px 18px 38px}.card{background:#fff;border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);padding:20px;margin-bottom:16px}.tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px}.tab{border:1px solid var(--line);border-radius:11px;background:#f3f6f8;color:var(--ink);padding:11px;font-weight:800;cursor:pointer}.tab.active{background:var(--g);color:#fff;border-color:var(--gd)}.panel[hidden],#results[hidden],#error[hidden],#stationChoices[hidden],#rawCard[hidden]{display:none}.grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;align-items:end}.grid.three{grid-template-columns:repeat(3,minmax(0,1fr))}.field label{display:block;color:var(--muted);font-size:.76rem;font-weight:700;margin-bottom:6px}.input{width:100%;min-height:44px;padding:10px 12px;border:1px solid rgba(50,62,72,.26);border-radius:11px;background:#fff;color:var(--text)}.input:focus{outline:none;border-color:var(--g);box-shadow:0 0 0 4px rgba(0,148,94,.12)}.btn{min-height:44px;padding:10px 18px;border:1px solid var(--gd);border-radius:11px;background:linear-gradient(var(--g),var(--gd));color:#fff;font-weight:800;cursor:pointer;box-shadow:0 10px 20px rgba(0,148,94,.18)}.btn.secondary{background:#fff;color:var(--g);box-shadow:none}.btn:disabled{opacity:.6;cursor:not-allowed}.hint{color:var(--muted);font-size:.82rem;margin:10px 0 0}.error{color:var(--danger);background:#fff1f0;border-color:rgba(180,35,24,.28)}.choices{display:grid;gap:8px;margin-top:14px}.choice{display:flex;justify-content:space-between;gap:15px;text-align:left;padding:12px;border:1px solid var(--line);border-radius:11px;background:#fff;cursor:pointer}.choice:hover{border-color:var(--g);background:rgba(0,148,94,.04)}.choice strong{color:var(--ink)}.choice small{color:var(--muted)}.summary{display:flex;justify-content:space-between;gap:16px;align-items:center}.badge{display:inline-block;padding:5px 11px;border-radius:999px;color:var(--g);background:rgba(0,148,94,.06);border:1px solid rgba(0,148,94,.34);font-weight:800}.summary h2{display:inline;margin-left:8px;color:var(--ink);font-size:1.25rem}.meta{color:var(--muted);margin-top:7px}.metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}.metric{min-height:145px}.kicker{color:var(--muted);font-size:.73rem;font-weight:800;letter-spacing:.07em;text-transform:uppercase}.value{margin-top:12px;color:var(--ink);font-size:clamp(1.45rem,3vw,2rem);font-weight:800;line-height:1.1}.detail{margin-top:8px;color:#596572;font-size:.84rem}.raw{white-space:pre-wrap;overflow-wrap:anywhere;background:#f3f6f8;border:2px dashed rgba(0,148,94,.42);border-radius:11px;padding:14px}.notice{font-size:.76rem;color:var(--muted)}.mode-title{margin:0 0 14px;color:var(--ink);font-size:.85rem;text-transform:uppercase;letter-spacing:.08em}.manual-note{grid-column:1/-1}.source{font-weight:700;color:var(--g)}
-@media(max-width:850px){.grid,.grid.three,.metrics{grid-template-columns:repeat(2,1fr)}}@media(max-width:600px){.tabs,.grid,.grid.three,.metrics{grid-template-columns:1fr}.summary{align-items:flex-start;flex-direction:column}.card{padding:16px}.wrap{padding-left:13px;padding-right:13px}}
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="description" content="UAS weather dashboard with METAR lookup, nearest station search, field weather input, pressure altitude, density altitude, wind, and time conversion.">
+  <meta name="theme-color" content="#00945e">
+  <title>UAS Weather &amp; Density Altitude</title>
+  <style>
+    :root {
+      --ie-green: #00945e;
+      --ie-green-dark: #00784c;
+      --ie-green-soft: #e8f6f0;
+      --granite: #323e48;
+      --ink: #1b2530;
+      --gray: #7c8795;
+      --gray-dark: #596572;
+      --surface: #ffffff;
+      --background: #f7f9fb;
+      --border: rgba(50, 62, 72, 0.17);
+      --border-strong: rgba(50, 62, 72, 0.27);
+      --danger: #b42318;
+      --danger-bg: #fff1f0;
+      --shadow: 0 14px 36px rgba(50, 62, 72, 0.10);
+      --shadow-green: 0 10px 22px rgba(0, 148, 94, 0.20);
+      --radius: 14px;
+      --transition: 180ms ease;
+    }
+
+    * { box-sizing: border-box; }
+    html { min-height: 100%; scroll-behavior: smooth; }
+    body {
+      min-height: 100vh;
+      margin: 0;
+      color: var(--ink);
+      background:
+        radial-gradient(900px 600px at 20% 0%, rgba(0, 148, 94, 0.10), transparent 55%),
+        linear-gradient(180deg, #ffffff 0%, var(--background) 55%, #eef3f6 100%);
+      font: 15px/1.5 "Futura PT", Futura, Jost, "Avenir Next", "Segoe UI", Arial, sans-serif;
+    }
+    button, input, select, textarea { font: inherit; }
+    button { touch-action: manipulation; }
+    [hidden] { display: none !important; }
+
+    .site-header {
+      padding: calc(22px + env(safe-area-inset-top)) 22px 22px;
+      background:
+        linear-gradient(135deg, rgba(0, 148, 94, 0.14), transparent 46%),
+        radial-gradient(900px 420px at 22% -10%, rgba(0, 148, 94, 0.18), transparent 60%),
+        #ffffff;
+      border-bottom: 4px solid rgba(0, 148, 94, 0.35);
+    }
+    .header-inner, .main-content { width: 100%; max-width: 1120px; margin: 0 auto; }
+    .header-inner { display: flex; align-items: center; justify-content: space-between; gap: 24px; }
+    .brand { display: flex; align-items: center; gap: 14px; min-width: 0; }
+    .brand-icon {
+      width: 48px; height: 48px; flex: 0 0 48px; display: grid; place-items: center;
+      color: white; background: linear-gradient(180deg, var(--ie-green), var(--ie-green-dark));
+      border: 1px solid rgba(0,120,76,.35); border-radius: 13px; box-shadow: var(--shadow-green);
+      font-size: 25px; font-weight: 800;
+    }
+    h1 { margin: 0; color: var(--granite); font-size: clamp(1.45rem, 4vw, 2.05rem); letter-spacing: -.035em; line-height: 1.05; }
+    .subtitle { margin: 6px 0 0; color: var(--gray); font-size: .9rem; }
+    .tagline { flex: 0 0 auto; color: var(--gray); font-size: .78rem; font-weight: 600; line-height: 1.45; text-align: right; }
+
+    .main-content { padding: 26px 22px calc(36px + env(safe-area-inset-bottom)); }
+    .card { margin-bottom: 16px; padding: 20px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); }
+    .tabs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 17px; }
+    .tab {
+      min-height: 44px; padding: 10px; color: var(--granite); background: #f3f6f8;
+      border: 1px solid var(--border); border-radius: 11px; font-weight: 800; cursor: pointer;
+      transition: background var(--transition), color var(--transition), border-color var(--transition);
+    }
+    .tab.active { color: white; background: linear-gradient(180deg, var(--ie-green), var(--ie-green-dark)); border-color: var(--ie-green-dark); }
+    .section-title { margin: 0 0 14px; color: var(--granite); font-size: .84rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+
+    .display-controls {
+      margin-bottom: 18px; padding: 16px;
+      background: linear-gradient(135deg, rgba(0,148,94,.075), rgba(0,148,94,.015));
+      border: 1px solid rgba(0,148,94,.20); border-radius: 12px;
+    }
+    .display-controls-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+    .grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; align-items: end; }
+    .station-grid { display: grid; grid-template-columns: minmax(190px, 1fr) auto; gap: 14px; align-items: end; }
+    .field { min-width: 0; }
+    .field label { display: block; margin-bottom: 6px; color: var(--gray); font-size: .76rem; font-weight: 700; }
+    .input {
+      width: 100%; min-height: 44px; padding: 10px 12px; color: var(--ink); background: white;
+      border: 1px solid var(--border-strong); border-radius: 11px; outline: none;
+      transition: border-color var(--transition), box-shadow var(--transition);
+    }
+    .input:hover { border-color: rgba(0,148,94,.52); }
+    .input:focus { border-color: var(--ie-green); box-shadow: 0 0 0 4px rgba(0,148,94,.12); }
+    .station-input { color: var(--granite); font-size: 1.05rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+    .btn {
+      min-height: 44px; padding: 10px 18px; color: white;
+      background: linear-gradient(180deg, var(--ie-green), var(--ie-green-dark));
+      border: 1px solid var(--ie-green-dark); border-radius: 11px; box-shadow: var(--shadow-green);
+      font-weight: 800; cursor: pointer; white-space: nowrap;
+    }
+    .btn:hover:not(:disabled) { filter: brightness(1.06); transform: translateY(-1px); }
+    .btn.secondary { color: var(--ie-green); background: white; box-shadow: none; }
+    .btn:disabled { opacity: .62; cursor: not-allowed; transform: none; }
+    .hint, .notice { color: var(--gray); font-size: .78rem; }
+    .hint { margin: 11px 0 0; }
+    .manual-note { grid-column: 1 / -1; }
+
+    .error { color: var(--danger); background: var(--danger-bg); border-color: rgba(180,35,24,.28); font-weight: 650; }
+    .choices { display: grid; gap: 9px; margin-top: 14px; }
+    .choice {
+      display: flex; justify-content: space-between; gap: 15px; width: 100%; padding: 13px;
+      color: var(--ink); background: white; border: 1px solid var(--border); border-radius: 11px;
+      text-align: left; cursor: pointer;
+    }
+    .choice:hover { border-color: var(--ie-green); background: rgba(0,148,94,.04); }
+    .choice strong { color: var(--granite); }
+    .choice small { color: var(--gray); }
+
+    .summary { display: flex; align-items: center; justify-content: space-between; gap: 18px; }
+    .badge { display: inline-flex; padding: 5px 11px; color: var(--ie-green); background: rgba(0,148,94,.06); border: 1px solid rgba(0,148,94,.34); border-radius: 999px; font-weight: 800; letter-spacing: .04em; }
+    .summary h2 { display: inline; margin: 0 0 0 8px; color: var(--granite); font-size: 1.25rem; }
+    .meta { margin-top: 7px; color: var(--gray); }
+    .metrics { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+    .metric { min-height: 145px; }
+    .kicker { color: var(--gray); font-size: .73rem; font-weight: 800; letter-spacing: .075em; text-transform: uppercase; }
+    .value { margin-top: 12px; color: var(--granite); font-size: clamp(1.45rem, 3vw, 2rem); font-weight: 800; line-height: 1.1; overflow-wrap: anywhere; }
+    .detail { margin-top: 8px; color: var(--gray-dark); font-size: .84rem; }
+
+    .wind-panel { display: flex; align-items: center; gap: 24px; }
+    .wind-compass {
+      position: relative; width: 120px; height: 120px; flex: 0 0 120px;
+      background:
+        radial-gradient(circle, rgba(0,148,94,.11) 0 7%, transparent 8%),
+        linear-gradient(90deg, transparent 49.4%, rgba(50,62,72,.12) 49.4% 50.6%, transparent 50.6%),
+        linear-gradient(0deg, transparent 49.4%, rgba(50,62,72,.12) 49.4% 50.6%, transparent 50.6%),
+        rgba(0,148,94,.045);
+      border: 2px solid rgba(0,148,94,.34); border-radius: 50%;
+    }
+    .compass-label { position: absolute; z-index: 3; color: var(--granite); font-size: .68rem; font-weight: 800; line-height: 1; }
+    .north { top: 8px; left: 50%; transform: translateX(-50%); }
+    .east { top: 50%; right: 8px; transform: translateY(-50%); }
+    .south { bottom: 8px; left: 50%; transform: translateX(-50%); }
+    .west { top: 50%; left: 8px; transform: translateY(-50%); }
+    .wind-arrow-wrapper { position: absolute; inset: 17px; z-index: 2; transform-origin: center; transition: transform 350ms ease; }
+    .wind-arrow { position: absolute; top: 5px; bottom: 5px; left: 50%; width: 4px; background: var(--ie-green); border-radius: 999px; transform: translateX(-50%); }
+    .wind-arrow::after { content: ""; position: absolute; bottom: -1px; left: 50%; width: 14px; height: 14px; border-right: 4px solid var(--ie-green); border-bottom: 4px solid var(--ie-green); transform: translateX(-50%) rotate(45deg); }
+    .compass-center { position: absolute; top: 50%; left: 50%; z-index: 4; width: 14px; height: 14px; background: var(--granite); border: 2px solid white; border-radius: 50%; box-shadow: 0 2px 6px rgba(50,62,72,.24); transform: translate(-50%,-50%); }
+    .wind-reading { margin-top: 7px; color: var(--ie-green); font-size: 1.4rem; font-weight: 800; }
+    .wind-description { max-width: 650px; margin: 7px 0 0; color: var(--gray); font-size: .86rem; }
+    .raw { min-height: 58px; margin: 11px 0 0; padding: 15px; color: var(--ink); background: #f3f6f8; border: 2px dashed rgba(0,148,94,.42); border-radius: 11px; font: .86rem/1.55 "Cascadia Code", Consolas, monospace; white-space: pre-wrap; overflow-wrap: anywhere; }
+
+    @media (max-width: 850px) {
+      .display-controls-grid, .grid, .metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+    @media (max-width: 600px) {
+      .site-header { padding-left: 16px; padding-right: 16px; }
+      .tagline { display: none; }
+      .main-content { padding-left: 13px; padding-right: 13px; }
+      .card { padding: 16px; }
+      .tabs, .display-controls-grid, .grid, .station-grid, .metrics { grid-template-columns: 1fr; }
+      .summary { align-items: flex-start; flex-direction: column; }
+      .wind-panel { flex-direction: column; text-align: center; }
+      .choice { flex-direction: column; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; }
+    }
+  </style>
 </head>
 <body>
-<header class="top"><div class="topin brand"><div class="logo">⌖</div><div><h1>UAS Weather & Density Altitude</h1><p class="sub">Official observations, nearest-station lookup, and field-entered weather data.</p></div></div></header>
-<main class="wrap">
-<section class="card">
-  <div class="tabs" role="tablist">
-    <button class="tab active" data-mode="station">Airport / METAR</button>
-    <button class="tab" data-mode="location">Find Nearest Station</button>
-    <button class="tab" data-mode="manual">Input Weather Data</button>
-  </div>
-
-  <div id="stationPanel" class="panel">
-    <h2 class="mode-title">Lookup by station identifier</h2>
-    <div class="grid three">
-      <div class="field"><label for="stationInput">ICAO station identifier</label><input id="stationInput" class="input" value="KBIL" maxlength="4" autocomplete="off"></div>
-      <div class="field"><label for="timeZoneSelect">Display time zone</label><select id="timeZoneSelect" class="input"><option value="America/Denver">Mountain</option><option value="America/Chicago">Central</option><option value="America/New_York">Eastern</option><option value="America/Los_Angeles">Pacific</option><option value="America/Anchorage">Alaska</option><option value="Pacific/Honolulu">Hawaii</option><option value="UTC">UTC / Zulu</option></select></div>
-      <button id="stationButton" class="btn">Get METAR</button>
+  <header class="site-header">
+    <div class="header-inner">
+      <div class="brand">
+        <div class="brand-icon" aria-hidden="true">⌖</div>
+        <div>
+          <h1>UAS Weather &amp; Density Altitude</h1>
+          <p class="subtitle">Official observations, nearest-METAR lookup, and field-entered weather data.</p>
+        </div>
+      </div>
+      <div class="tagline">Professionals You Need,<br>People You Trust.</div>
     </div>
-  </div>
+  </header>
 
-  <div id="locationPanel" class="panel" hidden>
-    <h2 class="mode-title">Find nearby reporting stations</h2>
-    <div class="grid">
-      <div class="field"><label for="placeInput">City and state</label><input id="placeInput" class="input" placeholder="Wolf Creek, MT"></div>
-      <button id="placeButton" class="btn">Find by Place</button>
-      <div class="field"><label for="latInput">Latitude</label><input id="latInput" class="input" type="number" step="any" placeholder="47.0066"></div>
-      <div class="field"><label for="lonInput">Longitude</label><input id="lonInput" class="input" type="number" step="any" placeholder="-112.0708"></div>
-    </div>
-    <button id="coordButton" class="btn secondary" style="margin-top:12px">Find by Coordinates</button>
-    <p class="hint">Returns up to five recent METAR stations ranked by straight-line distance. Select the station that best represents the project terrain and elevation.</p>
-    <div id="stationChoices" class="choices" hidden></div>
-  </div>
+  <main class="main-content">
+    <section class="card">
+      <div class="tabs" role="tablist" aria-label="Weather source">
+        <button class="tab active" type="button" data-mode="station" role="tab" aria-selected="true">Airport / METAR</button>
+        <button class="tab" type="button" data-mode="location" role="tab" aria-selected="false">Find Nearest METAR</button>
+        <button class="tab" type="button" data-mode="manual" role="tab" aria-selected="false">Input Weather Data</button>
+      </div>
 
-  <div id="manualPanel" class="panel" hidden>
-    <h2 class="mode-title">Field-entered observation</h2>
-    <div class="grid">
-      <div class="field"><label for="manualTemp">Temperature</label><input id="manualTemp" class="input" type="number" step="any" placeholder="72"></div>
-      <div class="field"><label for="manualTempUnit">Temperature unit</label><select id="manualTempUnit" class="input"><option value="F">°F</option><option value="C">°C</option></select></div>
-      <div class="field"><label for="manualElev">Site elevation</label><input id="manualElev" class="input" type="number" step="any" placeholder="4200"></div>
-      <div class="field"><label for="manualElevUnit">Elevation unit</label><select id="manualElevUnit" class="input"><option value="ft">Feet</option><option value="m">Metres</option></select></div>
-      <div class="field"><label for="manualPressure">Pressure / altimeter</label><input id="manualPressure" class="input" type="number" step="any" placeholder="29.92"></div>
-      <div class="field"><label for="manualPressureType">Pressure type</label><select id="manualPressureType" class="input"><option value="altInHg">Altimeter/QNH, inHg</option><option value="altHpa">Altimeter/QNH, hPa</option><option value="stationHpa">Station pressure, hPa</option><option value="stationInHg">Station pressure, inHg</option></select></div>
-      <div class="field"><label for="manualWind">Wind speed</label><input id="manualWind" class="input" type="number" min="0" step="any" placeholder="10"></div>
-      <div class="field"><label for="manualWindUnit">Wind unit</label><select id="manualWindUnit" class="input"><option value="mph">mph</option><option value="kt">knots</option><option value="ms">m/s</option><option value="kmh">km/h</option></select></div>
-      <div class="field"><label for="manualDir">Wind from, degrees true</label><input id="manualDir" class="input" type="number" min="0" max="360" step="1" placeholder="240"></div>
-      <div class="field"><label for="manualGust">Gust speed, same unit</label><input id="manualGust" class="input" type="number" min="0" step="any" placeholder="16"></div>
-      <div class="field manual-note"><label for="manualSource">Source note</label><input id="manualSource" class="input" placeholder="Kestrel 5500, GNSS elevation, pickup temperature, etc."></div>
-    </div>
-    <button id="manualButton" class="btn" style="margin-top:14px">Calculate Field Conditions</button>
-    <p class="hint">For the most defensible density altitude, use ambient shaded air temperature, site elevation, and station pressure from the same location. If using QNH/altimeter setting, select the matching pressure type.</p>
-  </div>
-</section>
+      <div class="display-controls">
+        <h2 class="section-title">Display Preferences</h2>
+        <div class="display-controls-grid">
+          <div class="field"><label for="outputWindUnit">Wind speed</label><select id="outputWindUnit" class="input"><option value="kt">Knots</option><option value="mph" selected>Miles per hour</option><option value="kmh">Kilometres per hour</option><option value="ms">Metres per second</option></select></div>
+          <div class="field"><label for="outputTempUnit">Temperature</label><select id="outputTempUnit" class="input"><option value="F" selected>Fahrenheit</option><option value="C">Celsius</option><option value="both">Show both</option></select></div>
+          <div class="field"><label for="outputAltitudeUnit">Altitude</label><select id="outputAltitudeUnit" class="input"><option value="ft" selected>Feet</option><option value="m">Metres</option></select></div>
+          <div class="field"><label for="timeZoneSelect">Display time zone</label><select id="timeZoneSelect" class="input"><option value="America/Denver" selected>Mountain</option><option value="America/Chicago">Central</option><option value="America/New_York">Eastern</option><option value="America/Los_Angeles">Pacific</option><option value="America/Anchorage">Alaska</option><option value="Pacific/Honolulu">Hawaii</option><option value="UTC">UTC / Zulu</option></select></div>
+        </div>
+      </div>
 
-<section id="error" class="card error" hidden></section>
-<section id="results" hidden>
-  <div class="card summary"><div><span id="sourceBadge" class="badge"></span><h2 id="sourceName"></h2><div id="sourceMeta" class="meta"></div></div><div id="pressureReadout" class="meta"></div></div>
-  <div class="metrics">
-    <div class="card metric"><div class="kicker">Observation time · Zulu</div><div id="zulu" class="value"></div><div class="detail">Coordinated Universal Time</div></div>
-    <div class="card metric"><div class="kicker">Selected local time</div><div id="local" class="value"></div><div id="zone" class="detail"></div></div>
-    <div class="card metric"><div class="kicker">Pressure altitude</div><div id="pa" class="value"></div><div class="detail">Calculated from selected elevation and pressure source</div></div>
-    <div class="card metric"><div class="kicker">Density altitude</div><div id="da" class="value"></div><div id="daDetail" class="detail"></div></div>
-    <div class="card metric"><div class="kicker">Wind</div><div id="wind" class="value"></div><div id="windDetail" class="detail"></div></div>
-    <div class="card metric"><div class="kicker">Temperature</div><div id="temp" class="value"></div><div id="dew" class="detail"></div></div>
-  </div>
-  <div id="rawCard" class="card"><div class="kicker">Raw METAR</div><pre id="raw" class="raw"></pre></div>
-  <p class="notice">For situational awareness only. Confirm operational decisions with official aviation weather products and an onsite preflight assessment. Distance is straight-line distance. Manually entered values are not an official weather observation.</p>
-</section>
-<p class="notice">Place search data © OpenStreetMap contributors. Place searches are user initiated and cached by the proxy.</p>
-</main>
-<script>
-'use strict';
-const API='https://uas-weather-proxy.scannie128.workers.dev';
-const $=id=>document.getElementById(id), finite=v=>{const n=Number(v);return Number.isFinite(n)?n:null}, fmt=n=>Number.isFinite(n)?Math.round(n).toLocaleString():'Unavailable';
-const compass=['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSW','SW','WSW','W','WNW','NW','NNW'];
-let current=null;
+      <div id="stationPanel" class="panel">
+        <h2 class="section-title">Lookup by Station Identifier</h2>
+        <div class="station-grid">
+          <div class="field"><label for="stationInput">ICAO station identifier</label><input id="stationInput" class="input station-input" value="KBIL" maxlength="4" autocomplete="off" autocapitalize="characters" spellcheck="false"></div>
+          <button id="stationButton" class="btn" type="button">Get METAR</button>
+        </div>
+      </div>
 
-document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active',x===b));['station','location','manual'].forEach(m=>$(m+'Panel').hidden=m!==b.dataset.mode); hideError();});
-$('stationInput').oninput=e=>e.target.value=e.target.value.toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,4);
-$('stationInput').onkeydown=e=>{if(e.key==='Enter') loadStation()};
-$('stationButton').onclick=loadStation;$('placeButton').onclick=geocode;$('coordButton').onclick=()=>findNearest(finite($('latInput').value),finite($('lonInput').value));$('manualButton').onclick=manual;$('timeZoneSelect').onchange=()=>current&&render(current);
+      <div id="locationPanel" class="panel" hidden>
+        <h2 class="section-title">Find Nearby METAR Stations</h2>
+        <div class="grid">
+          <div class="field"><label for="placeInput">City and state</label><input id="placeInput" class="input" placeholder="Wolf Creek, MT"></div>
+          <button id="placeButton" class="btn" type="button">Find by Place</button>
+          <div class="field"><label for="latInput">Latitude</label><input id="latInput" class="input" type="number" step="any" placeholder="47.0066"></div>
+          <div class="field"><label for="lonInput">Longitude</label><input id="lonInput" class="input" type="number" step="any" placeholder="-112.0708"></div>
+        </div>
+        <button id="coordButton" class="btn secondary" type="button" style="margin-top:12px">Find by Coordinates</button>
+        <p class="hint">Returns up to five recent METAR stations ranked by straight-line distance. Select the station that best represents the project terrain and elevation.</p>
+        <div id="stationChoices" class="choices" hidden></div>
+      </div>
 
-async function request(path){const r=await fetch(API+path,{headers:{Accept:'application/json'},cache:'no-store'});const body=await r.json().catch(()=>({}));if(!r.ok)throw new Error(body.error||`Request failed with HTTP ${r.status}.`);return body}
-async function busy(button,fn){const old=button.textContent;button.disabled=true;button.textContent='Loading…';hideError();try{await fn()}catch(e){console.error(e);showError(e.message)}finally{button.disabled=false;button.textContent=old}}
-async function loadStation(){const id=$('stationInput').value.trim().toUpperCase();if(!/^[A-Z0-9]{3,4}$/.test(id))return showError('Enter a valid 3 or 4 character station identifier.');return busy($('stationButton'),async()=>{const data=await request('/metar?ids='+encodeURIComponent(id));current=normalize(data.metar,data.airport,null);render(current)})}
-async function geocode(){const q=$('placeInput').value.trim();if(q.length<3)return showError('Enter a city and state, such as Wolf Creek, MT.');return busy($('placeButton'),async()=>{const data=await request('/geocode?q='+encodeURIComponent(q));if(!data.results.length)throw new Error('No matching US place was found.');const r=data.results[0];$('latInput').value=r.lat.toFixed(5);$('lonInput').value=r.lon.toFixed(5);await findNearest(r.lat,r.lon,r.name)})}
-async function findNearest(lat,lon,label='Selected coordinates'){if(!Number.isFinite(lat)||!Number.isFinite(lon))return showError('Enter valid decimal latitude and longitude.');const data=await request(`/nearest?lat=${encodeURIComponent(lat)}&lon=${encodeURIComponent(lon)}`);const c=$('stationChoices');c.innerHTML='';data.stations.forEach(s=>{const b=document.createElement('button');b.className='choice';const age=ageText(parseTime(s.metar.obsTime||s.metar.reportTime));b.innerHTML=`<span><strong>${safe(s.metar.icaoId)} · ${safe(s.metar.name||'Reporting station')}</strong><br><small>${safe(label)}</small></span><small>${s.distanceMiles.toFixed(1)} mi · ${safe(age)}</small>`;b.onclick=()=>{current=normalize(s.metar,s.airport,s.distanceMiles);render(current)};c.appendChild(b)});c.hidden=false}
-function normalize(m,a,distance){const temp=finite(m.temp), dewp=finite(m.dewp), metarElev=finite(m.elev), airportElev=finite(a&&a.elev);const elevM=airportElev??metarElev;let alt=finite(m.altim);if(alt>100)alt/=33.8638867;const elevFt=elevM===null?null:elevM*3.28084;const calc=calculate(temp,elevFt,alt,'altInHg');return{kind:'METAR',id:m.icaoId,name:(a&&a.name)||m.name||'Reporting station',time:parseTime(m.obsTime||m.reportTime),temp,dewp,elevFt,elevSource:airportElev!==null?'Airport elevation':'Observation-station elevation',pressureLabel:Number.isFinite(alt)?alt.toFixed(2)+' inHg':'Unavailable',windKt:finite(m.wspd),gustKt:finite(m.wgst),dir:finite(m.wdir),raw:m.rawOb,distance,pa:calc.pa,da:calc.da,method:calc.method}}
-function manual(){try{const t=finite($('manualTemp').value),e=finite($('manualElev').value),p=finite($('manualPressure').value);if(t===null||e===null||p===null)throw new Error('Temperature, elevation, and pressure are required.');const tempC=$('manualTempUnit').value==='F'?(t-32)*5/9:t;const elevFt=$('manualElevUnit').value==='m'?e*3.28084:e;const type=$('manualPressureType').value,calc=calculate(tempC,elevFt,p,type);const unit=$('manualWindUnit').value;current={kind:'FIELD',id:'FIELD',name:$('manualSource').value.trim()||'Field-entered weather data',time:new Date(),temp:tempC,dewp:null,elevFt,elevSource:'User-entered site elevation',pressureLabel:`${p} ${type.includes('InHg')?'inHg':'hPa'} (${type.startsWith('station')?'station pressure':'QNH/altimeter'})`,windKt:toKnots(finite($('manualWind').value),unit),gustKt:toKnots(finite($('manualGust').value),unit),dir:finite($('manualDir').value),raw:null,distance:null,pa:calc.pa,da:calc.da,method:calc.method};render(current)}catch(e){showError(e.message)}}
-function calculate(tempC,elevFt,pressure,type){if(![tempC,elevFt,pressure].every(Number.isFinite))return{pa:null,da:null,method:'Insufficient data'};let stationHpa,pa;if(type==='stationHpa'||type==='stationInHg'){stationHpa=type==='stationInHg'?pressure*33.8638867:pressure;pa=145366.45*(1-Math.pow(stationHpa/1013.25,0.190284));}else{const inHg=type==='altHpa'?pressure/33.8638867:pressure;pa=elevFt+(29.92-inHg)*1000;stationHpa=1013.25*Math.pow(1-pa/145366.45,5.2553026);}const tempK=tempC+273.15;const rho=stationHpa*100/(287.05287*tempK);const daM=44330.77*(1-Math.pow(rho/1.225,0.234969));return{pa,da:daM*3.28084,method:'International Standard Atmosphere density equation'}}
-function render(d){$('sourceBadge').textContent=d.id;$('sourceName').textContent=d.name;$('sourceMeta').textContent=[d.elevSource+': '+fmt(d.elevFt)+' ft MSL',Number.isFinite(d.distance)?d.distance.toFixed(1)+' mi from selected location':null,ageText(d.time)].filter(Boolean).join(' · ');$('pressureReadout').textContent='Pressure: '+d.pressureLabel;$('zulu').textContent=formatZulu(d.time);$('local').textContent=formatLocal(d.time,$('timeZoneSelect').value);$('zone').textContent=$('timeZoneSelect').selectedOptions[0].text;$('pa').textContent=fmt(d.pa)+' ft';$('da').textContent=fmt(d.da)+' ft';$('daDetail').textContent=d.method;$('temp').textContent=Number.isFinite(d.temp)?`${d.temp.toFixed(1)}°C · ${(d.temp*9/5+32).toFixed(1)}°F`:'Unavailable';$('dew').textContent=Number.isFinite(d.dewp)?`Dew point ${d.dewp.toFixed(1)}°C`:'Dew point not supplied';renderWind(d);$('rawCard').hidden=!d.raw;$('raw').textContent=d.raw||'';$('results').hidden=false;hideError();$('results').scrollIntoView({behavior:'smooth',block:'start'})}
-function renderWind(d){if(!Number.isFinite(d.windKt)){$('wind').textContent='Unavailable';$('windDetail').textContent='No wind input';return}if(d.windKt===0){$('wind').textContent='Calm';$('windDetail').textContent='No measurable wind';return}const mph=d.windKt*1.150779;$('wind').textContent=`${d.windKt.toFixed(0)} kt · ${mph.toFixed(1)} mph`;const dir=Number.isFinite(d.dir)?`${String(Math.round(d.dir)).padStart(3,'0')}° true · ${compass[Math.round(d.dir/22.5)%16]}`:'Variable direction';$('windDetail').textContent=dir+(Number.isFinite(d.gustKt)?` · Gust ${d.gustKt.toFixed(0)} kt`:'')}
-function toKnots(v,u){if(!Number.isFinite(v))return null;return u==='mph'?v/1.150779:u==='ms'?v/0.514444:u==='kmh'?v/1.852:v}
-function parseTime(v){if(v===null||v===undefined)return null;if(typeof v==='number'||/^\d+$/.test(String(v)))return new Date(Number(v)<1e11?Number(v)*1000:Number(v));const d=new Date(v);return isNaN(d)?null:d}
-function formatZulu(d){return d instanceof Date&&!isNaN(d)?`${String(d.getUTCDate()).padStart(2,'0')} ${d.toLocaleString('en-US',{timeZone:'UTC',month:'short'})} ${String(d.getUTCHours()).padStart(2,'0')}:${String(d.getUTCMinutes()).padStart(2,'0')}Z`:'Unavailable'}
-function formatLocal(d,z){return d instanceof Date&&!isNaN(d)?new Intl.DateTimeFormat('en-US',{timeZone:z,month:'short',day:'numeric',hour:'2-digit',minute:'2-digit',hour12:false,timeZoneName:'short'}).format(d):'Unavailable'}
-function ageText(d){if(!(d instanceof Date)||isNaN(d))return'Observation time unavailable';const m=Math.max(0,Math.round((Date.now()-d.getTime())/60000));return m<60?`${m} min old`:`${(m/60).toFixed(1)} hr old`}
-function safe(s){return String(s??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]))}
-function showError(m){$('error').textContent=m;$('error').hidden=false}function hideError(){$('error').hidden=true;$('error').textContent=''}
-</script>
+      <div id="manualPanel" class="panel" hidden>
+        <h2 class="section-title">Field-Entered Observation</h2>
+        <div class="grid">
+          <div class="field"><label for="manualTemp">Temperature</label><input id="manualTemp" class="input" type="number" step="any" placeholder="72"></div>
+          <div class="field"><label for="manualTempUnit">Temperature unit</label><select id="manualTempUnit" class="input"><option value="F">°F</option><option value="C">°C</option></select></div>
+          <div class="field"><label for="manualElev">Site elevation</label><input id="manualElev" class="input" type="number" step="any" placeholder="4200"></div>
+          <div class="field"><label for="manualElevUnit">Elevation unit</label><select id="manualElevUnit" class="input"><option value="ft">Feet</option><option value="m">Metres</option></select></div>
+          <div class="field"><label for="manualPressure">Pressure / altimeter</label><input id="manualPressure" class="input" type="number" step="any" placeholder="29.92"></div>
+          <div class="field"><label for="manualPressureType">Pressure type</label><select id="manualPressureType" class="input"><option value="altInHg">Altimeter/QNH, inHg</option><option value="altHpa">Altimeter/QNH, hPa</option><option value="stationHpa">Station pressure, hPa</option><option value="stationInHg">Station pressure, inHg</option></select></div>
+          <div class="field"><label for="manualHumidityType">Moisture input</label><select id="manualHumidityType" class="input"><option value="none">Not supplied</option><option value="rh">Relative humidity</option><option value="dewF">Dew point, °F</option><option value="dewC">Dew point, °C</option></select></div>
+          <div class="field"><label for="manualHumidity">Humidity / dew point value</label><input id="manualHumidity" class="input" type="number" step="any" placeholder="45"></div>
+          <div class="field"><label for="manualWind">Wind speed</label><input id="manualWind" class="input" type="number" min="0" step="any" placeholder="10"></div>
+          <div class="field"><label for="manualWindUnit">Wind input unit</label><select id="manualWindUnit" class="input"><option value="mph">mph</option><option value="kt">knots</option><option value="ms">m/s</option><option value="kmh">km/h</option></select></div>
+          <div class="field"><label for="manualDir">Wind from, degrees true</label><input id="manualDir" class="input" type="number" min="0" max="360" step="1" placeholder="240"></div>
+          <div class="field"><label for="manualGust">Gust speed, same input unit</label><input id="manualGust" class="input" type="number" min="0" step="any" placeholder="16"></div>
+          <div class="field manual-note"><label for="manualSource">Source note</label><input id="manualSource" class="input" placeholder="Kestrel 5500, GNSS elevation, pickup temperature, etc."></div>
+        </div>
+        <button id="manualButton" class="btn" type="button" style="margin-top:14px">Calculate Field Conditions</button>
+        <p class="hint">For the most defensible result, use ambient shaded air temperature, site elevation, and pressure from the same location. Choose station pressure when entering pressure measured directly by a field instrument; choose QNH/altimeter only when entering an adjusted aviation pressure setting.</p>
+      </div>
+    </section>
+
+    <section id="error" class="card error" role="alert" hidden></section>
+
+    <section id="results" hidden>
+      <div class="card summary">
+        <div><span id="sourceBadge" class="badge"></span><h2 id="sourceName"></h2><div id="sourceMeta" class="meta"></div></div>
+        <div id="pressureReadout" class="meta"></div>
+      </div>
+
+      <div class="metrics">
+        <article class="card metric"><div class="kicker">Observation Time · Zulu</div><div id="zulu" class="value"></div><div class="detail">Coordinated Universal Time</div></article>
+        <article class="card metric"><div class="kicker">Selected Local Time</div><div id="local" class="value"></div><div id="zone" class="detail"></div></article>
+        <article class="card metric"><div class="kicker">Pressure Altitude</div><div id="pa" class="value"></div><div class="detail">Calculated from selected elevation and pressure source</div></article>
+        <article class="card metric"><div class="kicker">Density Altitude</div><div id="da" class="value"></div><div id="daDetail" class="detail"></div></article>
+        <article class="card metric"><div class="kicker">Wind</div><div id="wind" class="value"></div><div id="windDetail" class="detail"></div></article>
+        <article class="card metric"><div class="kicker">Temperature</div><div id="temp" class="value"></div><div id="dew" class="detail"></div></article>
+      </div>
+
+      <section id="windCompassCard" class="card wind-panel">
+        <div id="windCompass" class="wind-compass" role="img" aria-label="Wind direction compass">
+          <span class="compass-label north">N</span><span class="compass-label east">E</span><span class="compass-label south">S</span><span class="compass-label west">W</span>
+          <div id="windArrowWrapper" class="wind-arrow-wrapper"><div class="wind-arrow"></div></div>
+          <div class="compass-center"></div>
+        </div>
+        <div>
+          <div class="kicker">Wind Direction Indicator</div>
+          <div id="windDirectionReading" class="wind-reading">Direction unavailable</div>
+          <p id="windCompassDescription" class="wind-description">The reported direction identifies where the wind is coming from. The arrow points toward the direction the wind is moving.</p>
+        </div>
+      </section>
+
+      <section id="rawCard" class="card"><div class="kicker">Raw METAR</div><pre id="raw" class="raw"></pre></section>
+      <p class="notice">For situational awareness only. Confirm operational decisions with official aviation weather products and an onsite preflight assessment. Distance is straight-line distance. Field-entered values are not an official weather observation.</p>
+    </section>
+
+    <p class="notice">Place search data © OpenStreetMap contributors. Place searches are user initiated and cached by the proxy.</p>
+  </main>
+
+  <script>
+    'use strict';
+
+    const API = 'https://uas-weather-proxy.scannie128.workers.dev';
+    const $ = id => document.getElementById(id);
+    const finite = value => {
+      if (value === '' || value === null || value === undefined) return null;
+      const number = Number(value);
+      return Number.isFinite(number) ? number : null;
+    };
+    const compass = ['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSW','SW','WSW','W','WNW','NW','NNW'];
+    const windLabels = { kt: 'kt', mph: 'mph', kmh: 'km/h', ms: 'm/s' };
+    let current = null;
+
+    document.querySelectorAll('.tab').forEach(button => {
+      button.addEventListener('click', () => {
+        document.querySelectorAll('.tab').forEach(item => {
+          const active = item === button;
+          item.classList.toggle('active', active);
+          item.setAttribute('aria-selected', String(active));
+        });
+        ['station','location','manual'].forEach(mode => $(mode + 'Panel').hidden = mode !== button.dataset.mode);
+        hideError();
+      });
+    });
+
+    $('stationInput').addEventListener('input', event => {
+      event.target.value = event.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0,4);
+    });
+    $('stationInput').addEventListener('keydown', event => { if (event.key === 'Enter') loadStation(); });
+    $('placeInput').addEventListener('keydown', event => { if (event.key === 'Enter') geocodePlace(); });
+    $('stationButton').addEventListener('click', loadStation);
+    $('placeButton').addEventListener('click', geocodePlace);
+    $('coordButton').addEventListener('click', () => findNearest(finite($('latInput').value), finite($('lonInput').value)));
+    $('manualButton').addEventListener('click', calculateManual);
+    ['outputWindUnit','outputTempUnit','outputAltitudeUnit','timeZoneSelect'].forEach(id => {
+      $(id).addEventListener('change', () => current && render(current, false));
+    });
+
+    async function request(path) {
+      const response = await fetch(API + path, { headers: { Accept: 'application/json' }, cache: 'no-store' });
+      const body = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(body.error || `Request failed with HTTP ${response.status}.`);
+      return body;
+    }
+
+    async function busy(button, work) {
+      const original = button.textContent;
+      button.disabled = true;
+      button.textContent = 'Loading...';
+      hideError();
+      try { await work(); }
+      catch (error) { console.error(error); showError(error.message || 'The request could not be completed.'); }
+      finally { button.disabled = false; button.textContent = original; }
+    }
+
+    async function loadStation() {
+      const id = $('stationInput').value.trim().toUpperCase();
+      if (!/^[A-Z0-9]{3,4}$/.test(id)) return showError('Enter a valid 3 or 4 character station identifier, such as KBIL.');
+      return busy($('stationButton'), async () => {
+        const data = await request('/metar?ids=' + encodeURIComponent(id));
+        current = normalizeMetar(data.metar, data.airport, null);
+        render(current, true);
+      });
+    }
+
+    async function geocodePlace() {
+      const query = $('placeInput').value.trim();
+      if (query.length < 3) return showError('Enter a city and state, such as Wolf Creek, MT.');
+      return busy($('placeButton'), async () => {
+        const data = await request('/geocode?q=' + encodeURIComponent(query));
+        if (!data.results || !data.results.length) throw new Error('No matching US place was found.');
+        const selected = data.results[0];
+        $('latInput').value = selected.lat.toFixed(5);
+        $('lonInput').value = selected.lon.toFixed(5);
+        await findNearest(selected.lat, selected.lon, selected.name);
+      });
+    }
+
+    async function findNearest(lat, lon, label = 'Selected coordinates') {
+      if (!Number.isFinite(lat) || !Number.isFinite(lon) || Math.abs(lat) > 90 || Math.abs(lon) > 180) return showError('Enter valid decimal latitude and longitude.');
+      hideError();
+      try {
+        const data = await request(`/nearest?lat=${encodeURIComponent(lat)}&lon=${encodeURIComponent(lon)}`);
+        const container = $('stationChoices');
+        container.innerHTML = '';
+        data.stations.forEach(item => {
+          const button = document.createElement('button');
+          button.type = 'button';
+          button.className = 'choice';
+          const left = document.createElement('span');
+          const title = document.createElement('strong');
+          title.textContent = `${item.metar.icaoId} · ${item.metar.name || 'Reporting station'}`;
+          const context = document.createElement('small');
+          context.textContent = label;
+          left.append(title, document.createElement('br'), context);
+          const right = document.createElement('small');
+          right.textContent = `${item.distanceMiles.toFixed(1)} mi · ${ageText(parseTime(item.metar.obsTime || item.metar.reportTime))}`;
+          button.append(left, right);
+          button.addEventListener('click', () => {
+            current = normalizeMetar(item.metar, item.airport, item.distanceMiles);
+            render(current, true);
+          });
+          container.appendChild(button);
+        });
+        container.hidden = false;
+      } catch (error) {
+        console.error(error);
+        showError(error.message || 'Nearby METAR stations could not be retrieved.');
+      }
+    }
+
+    function normalizeMetar(metar, airport, distance) {
+      const temp = finite(metar.temp);
+      const dewp = finite(metar.dewp);
+      const metarElevM = finite(metar.elev);
+      const airportElevM = finite(airport && airport.elev);
+      const elevationM = airportElevM !== null ? airportElevM : metarElevM;
+      const elevationFt = elevationM === null ? null : elevationM * 3.28084;
+      let altimeter = finite(metar.altim);
+      if (altimeter !== null && altimeter > 100) altimeter /= 33.8638867;
+      const calculation = calculateAtmosphere(temp, elevationFt, altimeter, 'altInHg');
+      return {
+        kind: 'METAR', id: metar.icaoId || 'METAR', name: (airport && airport.name) || metar.name || 'Reporting station',
+        time: parseTime(metar.obsTime || metar.reportTime), temp, dewp, elevationFt,
+        elevationSource: airportElevM !== null ? 'Airport elevation' : 'Observation-station elevation',
+        pressureLabel: Number.isFinite(altimeter) ? `${altimeter.toFixed(2)} inHg (QNH/altimeter)` : 'Unavailable',
+        windKt: finite(metar.wspd), gustKt: finite(metar.wgst), dir: finite(metar.wdir), raw: metar.rawOb || null,
+        distance, pa: calculation.pa, da: calculation.da, method: calculation.method
+      };
+    }
+
+    function calculateManual() {
+      try {
+        const enteredTemp = finite($('manualTemp').value);
+        const enteredElevation = finite($('manualElev').value);
+        const pressure = finite($('manualPressure').value);
+        if (enteredTemp === null || enteredElevation === null || pressure === null) throw new Error('Temperature, elevation, and pressure are required.');
+        const tempC = $('manualTempUnit').value === 'F' ? (enteredTemp - 32) * 5 / 9 : enteredTemp;
+        const elevationFt = $('manualElevUnit').value === 'm' ? enteredElevation * 3.28084 : enteredElevation;
+        const pressureType = $('manualPressureType').value;
+        validatePressure(pressure, pressureType);
+        const dewp = getManualDewPointC(tempC);
+        const calculation = calculateAtmosphere(tempC, elevationFt, pressure, pressureType);
+        const inputWindUnit = $('manualWindUnit').value;
+        const dir = finite($('manualDir').value);
+        if (dir !== null && (dir < 0 || dir > 360)) throw new Error('Wind direction must be between 0 and 360 degrees.');
+        const pressureUnit = pressureType.toLowerCase().includes('inhg') ? 'inHg' : 'hPa';
+        current = {
+          kind: 'FIELD', id: 'FIELD', name: $('manualSource').value.trim() || 'Field-entered weather data',
+          time: new Date(), temp: tempC, dewp, elevationFt, elevationSource: 'User-entered site elevation',
+          pressureLabel: `${pressure} ${pressureUnit} (${pressureType.startsWith('station') ? 'station pressure' : 'QNH/altimeter'})`,
+          windKt: toKnots(finite($('manualWind').value), inputWindUnit),
+          gustKt: toKnots(finite($('manualGust').value), inputWindUnit), dir, raw: null, distance: null,
+          pa: calculation.pa, da: calculation.da, method: calculation.method
+        };
+        render(current, true);
+      } catch (error) { console.error(error); showError(error.message); }
+    }
+
+    function validatePressure(value, type) {
+      const inHg = type.toLowerCase().includes('inhg');
+      if (inHg && (value < 15 || value > 35)) throw new Error('The entered inHg pressure appears outside a reasonable atmospheric range. Check the value and selected pressure type.');
+      if (!inHg && (value < 500 || value > 1100)) throw new Error('The entered hPa pressure appears outside a reasonable atmospheric range. Check the value and selected pressure type.');
+    }
+
+    function getManualDewPointC(tempC) {
+      const type = $('manualHumidityType').value;
+      const value = finite($('manualHumidity').value);
+      if (type === 'none') return null;
+      if (value === null) throw new Error('Enter the selected relative humidity or dew point value.');
+      if (type === 'rh') {
+        if (value <= 0 || value > 100) throw new Error('Relative humidity must be greater than 0 and no more than 100 percent.');
+        const a = 17.625, b = 243.04;
+        const gamma = Math.log(value / 100) + (a * tempC) / (b + tempC);
+        return (b * gamma) / (a - gamma);
+      }
+      return type === 'dewF' ? (value - 32) * 5 / 9 : value;
+    }
+
+    function calculateAtmosphere(tempC, elevationFt, pressure, type) {
+      if (![tempC, elevationFt, pressure].every(Number.isFinite)) return { pa: null, da: null, method: 'Insufficient data' };
+      let stationHpa, pa;
+      if (type === 'stationHpa' || type === 'stationInHg') {
+        stationHpa = type === 'stationInHg' ? pressure * 33.8638867 : pressure;
+        pa = 145366.45 * (1 - Math.pow(stationHpa / 1013.25, 0.190284));
+      } else {
+        const inHg = type === 'altHpa' ? pressure / 33.8638867 : pressure;
+        pa = elevationFt + (29.92 - inHg) * 1000;
+        stationHpa = 1013.25 * Math.pow(1 - pa / 145366.45, 5.2553026);
+      }
+      const tempK = tempC + 273.15;
+      if (tempK <= 0 || !Number.isFinite(stationHpa) || stationHpa <= 0) return { pa: null, da: null, method: 'Invalid atmospheric inputs' };
+      const rho = stationHpa * 100 / (287.05287 * tempK);
+      const daM = 44330.77 * (1 - Math.pow(rho / 1.225, 0.234969));
+      return { pa, da: daM * 3.28084, method: 'International Standard Atmosphere density equation' };
+    }
+
+    function render(data, scroll) {
+      $('sourceBadge').textContent = data.id;
+      $('sourceName').textContent = data.name;
+      $('sourceMeta').textContent = [
+        `${data.elevationSource}: ${formatAltitude(data.elevationFt)} MSL`,
+        Number.isFinite(data.distance) ? `${data.distance.toFixed(1)} mi from selected location` : null,
+        ageText(data.time)
+      ].filter(Boolean).join(' · ');
+      $('pressureReadout').textContent = `Pressure: ${data.pressureLabel}`;
+      $('zulu').textContent = formatZulu(data.time);
+      $('local').textContent = formatLocal(data.time, $('timeZoneSelect').value);
+      $('zone').textContent = $('timeZoneSelect').selectedOptions[0].text;
+      $('pa').textContent = formatAltitude(data.pa);
+      $('da').textContent = formatAltitude(data.da);
+      $('daDetail').textContent = data.method;
+      $('temp').textContent = formatTemperature(data.temp);
+      $('dew').textContent = Number.isFinite(data.dewp) ? `Dew point ${formatTemperature(data.dewp)}` : 'Dew point not supplied';
+      renderWind(data);
+      $('rawCard').hidden = !data.raw;
+      $('raw').textContent = data.raw || '';
+      $('results').hidden = false;
+      hideError();
+      if (scroll) $('results').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    function renderWind(data) {
+      if (!Number.isFinite(data.windKt)) {
+        $('wind').textContent = 'Unavailable';
+        $('windDetail').textContent = 'No wind speed supplied';
+        $('windDirectionReading').textContent = 'Direction unavailable';
+        $('windCompassDescription').textContent = 'No wind direction was supplied for this observation.';
+        $('windArrowWrapper').style.display = 'none';
+        return;
+      }
+      if (data.windKt === 0) {
+        $('wind').textContent = 'Calm';
+        $('windDetail').textContent = 'No measurable wind reported';
+        $('windDirectionReading').textContent = 'Calm';
+        $('windCompassDescription').textContent = 'The observation reports calm wind.';
+        $('windArrowWrapper').style.display = 'none';
+        return;
+      }
+      $('wind').textContent = formatWind(data.windKt);
+      const gust = Number.isFinite(data.gustKt) && data.gustKt > 0 ? ` · Gust ${formatWind(data.gustKt)}` : '';
+      if (!Number.isFinite(data.dir)) {
+        $('windDetail').textContent = `Variable direction${gust}`;
+        $('windDirectionReading').textContent = 'Variable direction';
+        $('windCompassDescription').textContent = 'The observation does not provide one fixed wind direction.';
+        $('windArrowWrapper').style.display = 'none';
+        return;
+      }
+      const direction = Math.round(data.dir) % 360;
+      const directionText = `${String(direction).padStart(3,'0')}° true · ${compass[Math.round(direction / 22.5) % 16]}`;
+      $('windDetail').textContent = directionText + gust;
+      $('windDirectionReading').textContent = directionText;
+      $('windArrowWrapper').style.display = 'block';
+      $('windArrowWrapper').style.transform = `rotate(${(direction + 180) % 360}deg)`;
+      $('windCompassDescription').textContent = `Wind is reported from ${directionText}. The arrow points toward the direction the wind is moving.`;
+    }
+
+    function formatWind(knots) {
+      const unit = $('outputWindUnit').value;
+      const converted = unit === 'mph' ? knots * 1.150779 : unit === 'kmh' ? knots * 1.852 : unit === 'ms' ? knots * 0.514444 : knots;
+      return `${converted.toFixed(unit === 'kt' ? 0 : 1)} ${windLabels[unit]}`;
+    }
+    function formatAltitude(feet) {
+      if (!Number.isFinite(feet)) return 'Unavailable';
+      const metres = $('outputAltitudeUnit').value === 'm';
+      return `${Math.round(metres ? feet / 3.28084 : feet).toLocaleString()} ${metres ? 'm' : 'ft'}`;
+    }
+    function formatTemperature(celsius) {
+      if (!Number.isFinite(celsius)) return 'Unavailable';
+      const fahrenheit = celsius * 9 / 5 + 32;
+      const mode = $('outputTempUnit').value;
+      if (mode === 'C') return `${celsius.toFixed(1)}°C`;
+      if (mode === 'both') return `${fahrenheit.toFixed(1)}°F · ${celsius.toFixed(1)}°C`;
+      return `${fahrenheit.toFixed(1)}°F`;
+    }
+    function toKnots(value, unit) {
+      if (!Number.isFinite(value)) return null;
+      return unit === 'mph' ? value / 1.150779 : unit === 'ms' ? value / 0.514444 : unit === 'kmh' ? value / 1.852 : value;
+    }
+    function parseTime(value) {
+      if (value === null || value === undefined || value === '') return null;
+      if (typeof value === 'number' || /^\d+(\.\d+)?$/.test(String(value))) {
+        const number = Number(value);
+        const date = new Date(number < 1e11 ? number * 1000 : number);
+        return Number.isNaN(date.getTime()) ? null : date;
+      }
+      const date = new Date(value);
+      return Number.isNaN(date.getTime()) ? null : date;
+    }
+    function formatZulu(date) {
+      if (!(date instanceof Date) || Number.isNaN(date.getTime())) return 'Unavailable';
+      const day = String(date.getUTCDate()).padStart(2,'0');
+      const month = date.toLocaleString('en-US', { timeZone: 'UTC', month: 'short' });
+      return `${day} ${month} ${String(date.getUTCHours()).padStart(2,'0')}:${String(date.getUTCMinutes()).padStart(2,'0')}Z`;
+    }
+    function formatLocal(date, zone) {
+      if (!(date instanceof Date) || Number.isNaN(date.getTime())) return 'Unavailable';
+      return new Intl.DateTimeFormat('en-US', { timeZone: zone, month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false, timeZoneName: 'short' }).format(date);
+    }
+    function ageText(date) {
+      if (!(date instanceof Date) || Number.isNaN(date.getTime())) return 'Observation time unavailable';
+      const minutes = Math.max(0, Math.round((Date.now() - date.getTime()) / 60000));
+      return minutes < 60 ? `${minutes} min old` : `${(minutes / 60).toFixed(1)} hr old`;
+    }
+    function showError(message) { $('error').textContent = message; $('error').hidden = false; }
+    function hideError() { $('error').textContent = ''; $('error').hidden = true; }
+  </script>
 </body>
 </html>
