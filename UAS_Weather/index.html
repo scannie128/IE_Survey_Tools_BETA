@@ -165,6 +165,38 @@
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; }
     }
+    .choice-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.choice-pill {
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: rgba(0,148,94,.05);
+  border: 1px solid rgba(0,148,94,.15);
+  color: var(--gray);
+  font-size: .78rem;
+  white-space: nowrap;
+}
+
+.choice-pill.elevation {
+  background: rgba(0,148,94,.08);
+}
+
+.choice-pill.delta {
+  font-weight: 700;
+}
+
+.choice-pill.delta-up {
+  color: #005c3b;
+}
+
+.choice-pill.delta-down {
+  color: #7a4a00;
+}
   </style>
 </head>
 <body>
@@ -214,6 +246,19 @@
           <button id="placeButton" class="btn" type="button">Find by Place</button>
           <div class="field"><label for="latInput">Latitude</label><input id="latInput" class="input" type="number" step="any" placeholder="47.0066"></div>
           <div class="field"><label for="lonInput">Longitude</label><input id="lonInput" class="input" type="number" step="any" placeholder="-112.0708"></div>
+          <div class="field">
+  <label for="projectElevation">
+    Project Elevation (ft)
+  </label>
+
+  <input
+    id="projectElevation"
+    class="input"
+    type="number"
+    step="any"
+    placeholder="4580"
+  >
+</div>
         </div>
         <button id="coordButton" class="btn secondary" type="button" style="margin-top:12px">Find by Coordinates</button>
         <p class="hint">Returns up to five recent METAR stations ranked by straight-line distance. Select the station that best represents the project terrain and elevation.</p>
@@ -375,8 +420,114 @@
           const context = document.createElement('small');
           context.textContent = label;
           left.append(title, document.createElement('br'), context);
-          const right = document.createElement('small');
-          right.textContent = `${item.distanceMiles.toFixed(1)} mi · ${ageText(parseTime(item.metar.obsTime || item.metar.reportTime))}`;
+const right =
+  document.createElement(
+    "div"
+  );
+
+right.className =
+  "choice-meta";
+
+const distance =
+  document.createElement(
+    "span"
+  );
+
+distance.className =
+  "choice-pill";
+
+distance.textContent =
+  `${item.distanceMiles.toFixed(1)} mi`;
+
+right.appendChild(
+  distance
+);
+
+const age =
+  document.createElement(
+    "span"
+  );
+
+age.className =
+  "choice-pill";
+
+age.textContent =
+  ageText(
+    parseTime(
+      item.metar.obsTime ||
+      item.metar.reportTime
+    )
+  );
+
+right.appendChild(
+  age
+);
+
+if (
+  Number.isFinite(
+    item.elevationFt
+  )
+) {
+
+  const elevation =
+    document.createElement(
+      "span"
+    );
+
+  elevation.className =
+    "choice-pill elevation";
+
+  elevation.textContent =
+    `${Math.round(
+      item.elevationFt
+    ).toLocaleString()} ft MSL`;
+
+  right.appendChild(
+    elevation
+  );
+
+  const projectElevation =
+  finite(
+    $("projectElevation")
+      ?.value
+  );
+
+  if (
+    Number.isFinite(
+      projectElevation
+    )
+  ) {
+
+    const delta =
+      Math.round(
+        item.elevationFt -
+        projectElevation
+      );
+
+    const diff =
+      document.createElement(
+        "span"
+      );
+
+    diff.className =
+      `choice-pill delta ${
+        delta >= 0
+          ? "delta-up"
+          : "delta-down"
+      }`;
+
+    diff.textContent =
+      `${
+        delta >= 0
+          ? "+"
+          : ""
+      }${delta} ft`;
+
+    right.appendChild(
+      diff
+    );
+  }
+}
           button.append(left, right);
           button.addEventListener('click', () => {
             current = normalizeMetar(item.metar, item.airport, item.distanceMiles);
