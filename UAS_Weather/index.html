@@ -259,6 +259,16 @@
     placeholder="4580"
   >
 </div>
+
+<div class="field">
+  <label>
+    <input
+      type="checkbox"
+      id="useProjectElevation"
+    >
+    Use Project Elevation for DA Calculation
+  </label>
+</div>
         </div>
         <button id="coordButton" class="btn secondary" type="button" style="margin-top:12px">Find by Coordinates</button>
         <p class="hint">Returns up to five recent METAR stations ranked by straight-line distance. Select the station that best represents the project terrain and elevation.</p>
@@ -362,6 +372,56 @@
     ['outputWindUnit','outputTempUnit','outputAltitudeUnit','timeZoneSelect'].forEach(id => {
       $(id).addEventListener('change', () => current && render(current, false));
     });
+$('useProjectElevation')
+  .addEventListener(
+    'change',
+    () => {
+
+      if (
+        current &&
+        current.kind === 'METAR'
+      ) {
+
+        current = normalizeMetar(
+          current.rawMetar,
+          current.rawAirport,
+          current.distance,
+          finite(
+            $('projectElevation').value
+          ),
+          $('useProjectElevation').checked
+        );
+
+        render(current, false);
+      }
+    }
+  );
+
+$('projectElevation')
+  .addEventListener(
+    'input',
+    () => {
+
+      if (
+        current &&
+        current.kind === 'METAR' &&
+        $('useProjectElevation').checked
+      ) {
+
+        current = normalizeMetar(
+          current.rawMetar,
+          current.rawAirport,
+          current.distance,
+          finite(
+            $('projectElevation').value
+          ),
+          true
+        );
+
+        render(current, false);
+      }
+    }
+  );
 
     async function request(path) {
       const response = await fetch(API + path, { headers: { Accept: 'application/json' }, cache: 'no-store' });
@@ -543,9 +603,21 @@ if (
 }
           button.append(left, right);
           button.addEventListener('click', () => {
-            current = normalizeMetar(item.metar, item.airport, item.distanceMiles);
-            render(current, true);
-          });
+  const projectElevation =
+    finite(
+      $('projectElevation').value
+    );
+
+  current = normalizeMetar(
+    item.metar,
+    item.airport,
+    item.distanceMiles,
+    projectElevation,
+    $('useProjectElevation').checked
+  );
+
+  render(current, true);
+});
           container.appendChild(button);
         });
         container.hidden = false;
@@ -555,24 +627,80 @@ if (
       }
     }
 
-    function normalizeMetar(metar, airport, distance) {
+    function normalizeMetar(
+  metar,
+  airport,
+  distance,
+  projectElevation = null,
+  useProjectElevation = false
+) {
       const temp = finite(metar.temp);
       const dewp = finite(metar.dewp);
       const metarElevM = finite(metar.elev);
       const airportElevM = finite(airport && airport.elev);
-      const elevationM = airportElevM !== null ? airportElevM : metarElevM;
-      const elevationFt = elevationM === null ? null : elevationM * 3.28084;
+      const airportElevationFt =
+  airportElevM !== null
+    ? airportElevM * 3.28084
+    : (
+        metarElevM !== null
+          ? metarElevM * 3.28084
+          : null
+      );
+
+const elevationFt =
+  useProjectElevation &&
+  Number.isFinite(projectElevation)
+    ? projectElevation
+    : airportElevationFt;
       let altimeter = finite(metar.altim);
       if (altimeter !== null && altimeter > 100) altimeter /= 33.8638867;
       const calculation = calculateAtmosphere(temp, elevationFt, altimeter, 'altInHg');
       return {
-        kind: 'METAR', id: metar.icaoId || 'METAR', name: (airport && airport.name) || metar.name || 'Reporting station',
-        time: parseTime(metar.obsTime || metar.reportTime), temp, dewp, elevationFt,
-        elevationSource: airportElevM !== null ? 'Airport elevation' : 'Observation-station elevation',
-        pressureLabel: Number.isFinite(altimeter) ? `${altimeter.toFixed(2)} inHg (QNH/altimeter)` : 'Unavailable',
-        windKt: finite(metar.wspd), gustKt: finite(metar.wgst), dir: finite(metar.wdir), raw: metar.rawOb || null,
-        distance, pa: calculation.pa, da: calculation.da, method: calculation.method
-      };
+  kind: 'METAR',
+  id: metar.icaoId || 'METAR',
+  name:
+    (airport && airport.name) ||
+    metar.name ||
+    'Reporting station',
+
+  rawMetar: metar,
+  rawAirport: airport,
+
+  time: parseTime(
+    metar.obsTime ||
+    metar.reportTime
+  ),
+
+  temp,
+  dewp,
+  elevationFt,
+
+  elevationSource:
+    useProjectElevation &&
+    Number.isFinite(projectElevation)
+      ? 'Project elevation'
+      : (
+          airportElevM !== null
+            ? 'Airport elevation'
+            : 'Observation-station elevation'
+        ),
+
+  pressureLabel:
+    Number.isFinite(altimeter)
+      ? `${altimeter.toFixed(2)} inHg (QNH/altimeter)`
+      : 'Unavailable',
+
+  windKt: finite(metar.wspd),
+  gustKt: finite(metar.wgst),
+  dir: finite(metar.wdir),
+  raw: metar.rawOb || null,
+
+  distance,
+
+  pa: calculation.pa,
+  da: calculation.da,
+  method: calculation.method
+};
     }
 
     function calculateManual() {
