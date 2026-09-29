@@ -1,0 +1,459 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Common Unit Conversion</title>
+  <style>
+    :root{
+      --green:#00945e;
+      --gray2:#7c8795;
+      --granite:#323e48;
+      --bg:#f7f9fb;
+      --card:#ffffff;
+      --border: rgba(50,62,72,.14);
+      --shadow: 0 14px 36px rgba(50,62,72,.12);
+      --text: #1b2530;
+      --muted: rgba(50,62,72,.78);
+      --danger: #b4232a;
+      --ok: #0f8a54;
+      --radius: 14px;
+      --focus: 0 0 0 4px rgba(0,148,94,.18);
+      font-family: "Futura PT", "Futura", "Jost", "Avenir Next", "Segoe UI", Roboto, Helvetica, Arial, system-ui, sans-serif;
+    }
+    *{box-sizing:border-box;}
+    body{
+      margin:0;
+      background:
+        radial-gradient(900px 600px at 20% 0%, rgba(0,148,94,.10) 0%, rgba(0,148,94,0) 55%),
+        linear-gradient(180deg, #ffffff 0%, var(--bg) 55%, #eef3f6 100%);
+      color:var(--text);
+    }
+    header{
+      padding:22px 18px 14px;
+      border-bottom: 4px solid rgba(0,148,94,.35);
+      background:
+        linear-gradient(135deg, rgba(0,148,94,.14) 0%, rgba(0,148,94,0) 46%),
+        radial-gradient(900px 420px at 22% -10%, rgba(0,148,94,.18) 0%, rgba(0,148,94,0) 60%),
+        #ffffff;
+    }
+    .brandbar{max-width:1100px; margin:0 auto; display:flex; align-items:center; justify-content:space-between; gap:12px;}
+    .brandleft{display:flex; align-items:center; gap:12px;}
+
+    /* Placeholder icon */
+    .logoPlaceholder{
+      height:44px;
+      width:44px;
+      border-radius:12px;
+      display:grid;
+      place-items:center;
+      background:
+        radial-gradient(18px 18px at 30% 30%, rgba(255,255,255,.35) 0%, rgba(255,255,255,0) 60%),
+        linear-gradient(180deg, rgba(0,148,94,.95), rgba(0,120,76,.92));
+      box-shadow: 0 10px 20px rgba(0,148,94,.18);
+      border: 1px solid rgba(0,148,94,.40);
+    }
+    .logoPlaceholder svg{display:block}
+    h1{margin:0; font-size:22px; letter-spacing:.2px; color:var(--granite);}
+    .subtitle{margin:4px 0 0; font-size:13px; color:var(--gray2);}
+    .tagline{font-size:12px; color:var(--gray2); text-align:right; white-space:nowrap;}
+    @media(max-width:520px){
+      .logoPlaceholder{height:34px; width:34px; border-radius:10px;}
+      .tagline{display:none;}
+    }
+
+    .wrap{max-width:1100px; margin:0 auto; padding:18px 18px 34px;}
+    .grid{display:grid; grid-template-columns:1fr; gap:16px;}
+    @media(min-width: 1000px){ .grid{grid-template-columns: 1.15fr .85fr;} }
+
+    .card{background:var(--card); border:1px solid var(--border); border-radius:var(--radius); box-shadow: var(--shadow); padding:16px;}
+    .card h2{margin:0 0 10px; font-size:14px; letter-spacing:.35px; text-transform:uppercase; color:var(--granite);}
+    .row{display:grid; grid-template-columns:1fr; gap:10px; margin:12px 0;}
+    @media(min-width: 720px){ .row{grid-template-columns: 1fr 1fr;} }
+
+    label{font-size:12px; color:var(--gray2);}
+    .field{display:flex; flex-direction:column; gap:6px;}
+
+    input{
+      appearance:none;
+      background:#fff;
+      color:var(--text);
+      border:1px solid rgba(50,62,72,.22);
+      border-radius:12px;
+      padding:10px 12px;
+      font-size:14px;
+      outline:none;
+    }
+    input:focus{border-color: rgba(0,148,94,.6); box-shadow: var(--focus);}
+
+    .ok{color:var(--ok); font-size:12px; display:none;}
+
+    button{
+      white-space:nowrap;
+      cursor:pointer;
+      border-radius:12px;
+      border:1px solid rgba(50,62,72,.18);
+      background: linear-gradient(180deg, rgba(0,148,94,.26), rgba(0,148,94,.10));
+      color:var(--granite);
+      padding:10px 12px;
+      font-weight:800;
+      letter-spacing:.2px;
+      transition: filter .12s ease, transform .04s ease, box-shadow .15s ease;
+    }
+    button:hover{filter: saturate(1.05) brightness(1.03); box-shadow:0 10px 18px rgba(50,62,72,.10);}
+    button:active{transform: translateY(1px);}
+    button.danger{background: linear-gradient(180deg, rgba(180,35,42,.12), rgba(180,35,42,.05)); color:#7a1116;}
+
+    .actions{display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-top:10px;}
+    .divider{border:0; border-top:1px solid var(--border); margin:12px 0;}
+
+    .badge{
+      font-size:11px;
+      color:var(--green);
+      border:1px solid rgba(0,148,94,.32);
+      padding:4px 8px;
+      border-radius:999px;
+      display:inline-flex;
+      align-items:center;
+      background:rgba(0,148,94,.06);
+    }
+
+    .converterCard{
+      box-shadow:none;
+      border:1px solid var(--border);
+      margin-top:12px;
+      padding:14px;
+      border-radius:var(--radius);
+      background:#fff;
+    }
+    .topline{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:12px;
+      flex-wrap:wrap;
+    }
+    .copyOkWrap{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      flex-wrap:wrap;
+      justify-content:flex-end;
+    }
+  </style>
+</head>
+
+<body>
+<header>
+  <div class="brandbar">
+    <div class="brandleft">
+      <div class="logoPlaceholder" aria-hidden="true" title="Placeholder Icon">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M7 3h10a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Z" stroke="white" stroke-width="1.6" opacity="0.95"/>
+          <path d="M8 7h4M8 10h3M8 13h4M8 16h3" stroke="white" stroke-width="1.6" stroke-linecap="round" opacity="0.95"/>
+          <path d="M14.5 9l2-2 2 2M18.5 15l-2 2-2-2" stroke="white" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" opacity="0.95"/>
+        </svg>
+      </div>
+      <div>
+        <h1>Common Unit Conversion</h1>
+        <p class="subtitle">Quick conversions for common survey + UAS calculations / mission planning</p>
+      </div>
+    </div>
+    <div class="tagline">Professionals You Need, People You Trust.</div>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="grid">
+    <section class="card">
+      <h2>Converters</h2>
+
+      <!-- SPEED -->
+      <div class="converterCard">
+        <div class="topline">
+          <div>
+            <span class="badge">Speed</span>
+          </div>
+          <div class="copyOkWrap">
+            <button id="copyMs" type="button">Copy m/s</button>
+            <button id="copyMph" type="button">Copy mph</button>
+            <span id="okSpeed" class="ok">Copied!</span>
+          </div>
+        </div>
+
+        <div class="row" style="margin-top:12px;">
+          <div class="field">
+            <label for="ms">Meters per second (m/s)</label>
+            <input id="ms" type="number" step="any" inputmode="decimal" placeholder="0.00" />
+          </div>
+          <div class="field">
+            <label for="mph">Miles per hour (mph)</label>
+            <input id="mph" type="number" step="any" inputmode="decimal" placeholder="0.00" />
+          </div>
+        </div>
+      </div>
+
+      <!-- FLIGHT HEIGHT -->
+      <div class="converterCard">
+        <div class="topline">
+          <div>
+            <span class="badge">Flight Height</span>
+          </div>
+          <div class="copyOkWrap">
+            <button id="copyM" type="button">Copy m</button>
+            <button id="copyFt" type="button">Copy ft</button>
+            <span id="okFlight" class="ok">Copied!</span>
+          </div>
+        </div>
+
+        <div class="row" style="margin-top:12px;">
+          <div class="field">
+            <label for="m">Meters (m)</label>
+            <input id="m" type="number" step="any" inputmode="decimal" placeholder="0.00" />
+          </div>
+          <div class="field">
+            <label for="ft">Feet (ft)</label>
+            <input id="ft" type="number" step="any" inputmode="decimal" placeholder="0.00" />
+          </div>
+        </div>
+      </div>
+
+      <!-- GSD -->
+      <div class="converterCard">
+        <div class="topline">
+          <div>
+            <span class="badge">GSD</span>
+          </div>
+          <div class="copyOkWrap">
+            <button id="copyCm" type="button">Copy cm</button>
+            <button id="copyGsdFt" type="button">Copy ft</button>
+            <span id="okGsd" class="ok">Copied!</span>
+          </div>
+        </div>
+
+        <div class="row" style="margin-top:12px;">
+          <div class="field">
+            <label for="cm">Centimeters (cm)</label>
+            <input id="cm" type="number" step="any" inputmode="decimal" placeholder="0.00" />
+          </div>
+          <div class="field">
+            <label for="gsdFt">Feet (ft)</label>
+            <input id="gsdFt" type="number" step="any" inputmode="decimal" placeholder="0.00" />
+          </div>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button class="danger" id="resetBtn" type="button">Reset</button>
+      </div>
+    </section>
+
+    <aside class="card">
+      <h2>Summary</h2>
+      <hr class="divider" />
+
+      <div class="field">
+        <label>Speed</label>
+        <div id="sumSpeed">—</div>
+      </div>
+
+      <div class="field" style="margin-top:12px;">
+        <label>Flight Height</label>
+        <div id="sumFlight">—</div>
+      </div>
+
+      <div class="field" style="margin-top:12px;">
+        <label>GSD</label>
+        <div id="sumGsd">—</div>
+      </div>
+    </aside>
+  </div>
+</div>
+
+<script>
+  const el = (id) => document.getElementById(id);
+
+  // Factors
+  const MS_TO_MPH = 2.2369362920544;
+  const M_TO_FT   = 3.28083989501312;
+  const CM_TO_FT  = 0.0328083989501312;
+
+  // Elements
+  const ms = el('ms');
+  const mph = el('mph');
+
+  const m = el('m');
+  const ft = el('ft');
+
+  const cm = el('cm');
+  const gsdFt = el('gsdFt');
+
+  const sumSpeed = el('sumSpeed');
+  const sumFlight = el('sumFlight');
+  const sumGsd = el('sumGsd');
+
+  const okSpeed = el('okSpeed');
+  const okFlight = el('okFlight');
+  const okGsd = el('okGsd');
+
+  // Helpers
+  function isNum(v){
+    return v !== '' && v !== null && v !== undefined && !Number.isNaN(Number(v));
+  }
+  function round2(n){
+    return Number(n).toFixed(2);
+  }
+  function flashOk(okEl){
+    okEl.style.display = 'inline';
+    setTimeout(() => okEl.style.display = 'none', 1300);
+  }
+  async function copyText(text){
+    return navigator.clipboard.writeText(text);
+  }
+
+  // Prevent feedback loops
+  let updating = false;
+
+  // Format input on blur (ensures display always two decimals without breaking typing)
+  function formatOnBlur(input){
+    if(!isNum(input.value)) return;
+    input.value = round2(input.value);
+  }
+
+  function updateSummary(){
+    if(isNum(ms.value) || isNum(mph.value)){
+      const msText = isNum(ms.value) ? round2(ms.value) : '—';
+      const mphText = isNum(mph.value) ? round2(mph.value) : '—';
+      sumSpeed.textContent = `m/s: ${msText}   |   mph: ${mphText}`;
+    } else sumSpeed.textContent = '—';
+
+    if(isNum(m.value) || isNum(ft.value)){
+      const mText = isNum(m.value) ? round2(m.value) : '—';
+      const ftText = isNum(ft.value) ? round2(ft.value) : '—';
+      sumFlight.textContent = `m: ${mText}   |   ft: ${ftText}`;
+    } else sumFlight.textContent = '—';
+
+    if(isNum(cm.value) || isNum(gsdFt.value)){
+      const cmText = isNum(cm.value) ? round2(cm.value) : '—';
+      const ftText = isNum(gsdFt.value) ? round2(gsdFt.value) : '—';
+      sumGsd.textContent = `cm: ${cmText}   |   ft: ${ftText}`;
+    } else sumGsd.textContent = '—';
+  }
+
+  // Speed conversions
+  function fromMs(){
+    if(updating) return;
+    updating = true;
+    if(!isNum(ms.value)) mph.value = '';
+    else mph.value = round2(Number(ms.value) * MS_TO_MPH);
+    updating = false;
+    updateSummary();
+  }
+  function fromMph(){
+    if(updating) return;
+    updating = true;
+    if(!isNum(mph.value)) ms.value = '';
+    else ms.value = round2(Number(mph.value) / MS_TO_MPH);
+    updating = false;
+    updateSummary();
+  }
+
+  // Flight height conversions (m <-> ft)
+  function fromM(){
+    if(updating) return;
+    updating = true;
+    if(!isNum(m.value)) ft.value = '';
+    else ft.value = round2(Number(m.value) * M_TO_FT);
+    updating = false;
+    updateSummary();
+  }
+  function fromFt(){
+    if(updating) return;
+    updating = true;
+    if(!isNum(ft.value)) m.value = '';
+    else m.value = round2(Number(ft.value) / M_TO_FT);
+    updating = false;
+    updateSummary();
+  }
+
+  // GSD conversions
+  function fromCm(){
+    if(updating) return;
+    updating = true;
+    if(!isNum(cm.value)) gsdFt.value = '';
+    else gsdFt.value = round2(Number(cm.value) * CM_TO_FT);
+    updating = false;
+    updateSummary();
+  }
+  function fromGsdFt(){
+    if(updating) return;
+    updating = true;
+    if(!isNum(gsdFt.value)) cm.value = '';
+    else cm.value = round2(Number(gsdFt.value) / CM_TO_FT);
+    updating = false;
+    updateSummary();
+  }
+
+  // Wire inputs (convert while typing)
+  ms.addEventListener('input', fromMs);
+  mph.addEventListener('input', fromMph);
+
+  m.addEventListener('input', fromM);
+  ft.addEventListener('input', fromFt);
+
+  cm.addEventListener('input', fromCm);
+  gsdFt.addEventListener('input', fromGsdFt);
+
+  // Always show two decimals when leaving fields
+  [ms, mph, m, ft, cm, gsdFt].forEach(inp => {
+    inp.addEventListener('blur', () => {
+      formatOnBlur(inp);
+      // Ensure paired field also stays formatted
+      updateSummary();
+    });
+  });
+
+  // Copy
+  el('copyMs').addEventListener('click', async () => {
+    if(!isNum(ms.value)) return;
+    try { await copyText(round2(ms.value)); flashOk(okSpeed); } catch { alert('Copy failed.'); }
+  });
+  el('copyMph').addEventListener('click', async () => {
+    if(!isNum(mph.value)) return;
+    try { await copyText(round2(mph.value)); flashOk(okSpeed); } catch { alert('Copy failed.'); }
+  });
+
+  el('copyM').addEventListener('click', async () => {
+    if(!isNum(m.value)) return;
+    try { await copyText(round2(m.value)); flashOk(okFlight); } catch { alert('Copy failed.'); }
+  });
+  el('copyFt').addEventListener('click', async () => {
+    if(!isNum(ft.value)) return;
+    try { await copyText(round2(ft.value)); flashOk(okFlight); } catch { alert('Copy failed.'); }
+  });
+
+  el('copyCm').addEventListener('click', async () => {
+    if(!isNum(cm.value)) return;
+    try { await copyText(round2(cm.value)); flashOk(okGsd); } catch { alert('Copy failed.'); }
+  });
+  el('copyGsdFt').addEventListener('click', async () => {
+    if(!isNum(gsdFt.value)) return;
+    try { await copyText(round2(gsdFt.value)); flashOk(okGsd); } catch { alert('Copy failed.'); }
+  });
+
+  // Reset
+  el('resetBtn').addEventListener('click', () => {
+    ms.value = '';
+    mph.value = '';
+    m.value = '';
+    ft.value = '';
+    cm.value = '';
+    gsdFt.value = '';
+    updateSummary();
+  });
+
+  updateSummary();
+</script>
+
+</body>
+</html>
